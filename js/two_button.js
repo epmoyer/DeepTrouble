@@ -60,16 +60,15 @@ var TwoButton = Class.extend({
         } else{
             this.bStableTimeSec = 0.0;
         }
-        this.bLeftPrevious = bLeft;
-        this.bRightPrevious = bRight;
-
+        
         switch(this.bState){
             case ButtonStates.IDLE:
                 if (bLeft && bRight) this.bState = ButtonStates.LR;
-                else if (bLeft && bStable){
-                    this.bState = ButtonStates.L;
-                }
+                else if (bLeft && bStable) this.bState = ButtonStates.L;
                 else if (bRight && bStable) this.bState = ButtonStates.R;
+                // Support rapid TapLeft and TapRight events (i.e. without meeting bStable timeout)
+                else if (!bLeft && this.bLeftPrevious) bEvent = ButtonEvent.TapLeft;
+                else if (!bRight && this.bRightPrevious) bEvent = ButtonEvent.TapRight;
                 break;
 
             case ButtonStates.L:
@@ -172,7 +171,8 @@ var TwoButton = Class.extend({
         else{
             this.bStateHoldTimeSec += paceFactor / 60.0;
         }
-
+        this.bLeftPrevious = bLeft;
+        this.bRightPrevious = bRight;
         return(bEvent);
     },
 

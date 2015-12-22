@@ -11,6 +11,16 @@ var ShipThrustSideVelocity = 0.35;
 
 var ShipThrust = 0.20;
 var ShipStartAngle = 0;
+var ShipExhaustRate = 10;
+var ShipExhaustVelocity = 0.6;
+var ShipExhaustSpread = Math.PI/7;
+
+var ShipShotVelocity=2.0;
+var ShipShotLife=450;
+var ShipShotSize=3.0;
+
+var ShipWidth = 36;
+var shipRadius = 20;
 
 var ShipNumExplosionParticles = 60;
 var ShipExplosionMaxVelocity = 4.0;
@@ -48,15 +58,33 @@ var StateGame = FlynnState.extend({
 		this.highscore = this.mcp.highscores[0][1];
 
 		this.particles = new Particles(this);
-		//this.projectiles = new FlynnProjectiles(
-		//		new Victor(0,0),                    // Min projectile bounds
-		//	new Victor(WorldWidth, WorldHeight) // Max projectile bounds
-		//	);
+		this.projectiles = new FlynnProjectiles(
+				new Victor(0,0),                    // Min projectile bounds
+			new Victor(this.canvasWidth, this.canvasHeight) // Max projectile bounds
+		);
 
 		this.soundSonarPing = new Howl({
             src: ['sounds/sonar_ping.mp3'],
             volume: 0.5
         });
+        this.soundBubblesLow = new Howl({
+            src: ['sounds/bubbles_low.mp3'],
+            volume: 0.5
+        });
+        this.soundBubblesHigh = new Howl({
+            src: ['sounds/bubbles_high.mp3'],
+            volume: 0.5
+        });
+        this.soundBubblesFast = new Howl({
+            src: ['sounds/bubbles_fast.mp3'],
+            volume: 0.5,
+            loop: true
+        });
+        this.soundTorpedo = new Howl({
+            src: ['sounds/torpedo.mp3'],
+            volume: 0.5
+        });
+        this.playingSoundBubblesFast = false;
 
         this.viewport_v = new Victor(0,0);
 
@@ -255,18 +283,99 @@ var StateGame = FlynnState.extend({
 		}
 
 		switch(bEvent){
+			case ButtonEvent.HoldTapLeft:
+				this.soundTorpedo.play();
+				this.projectiles.add(
+					new Victor(
+						this.ship.world_x - ShipWidth/2,
+						this.ship.world_y),
+					new Victor(-ShipShotVelocity, 0),
+					ShipShotLife,
+					ShipShotSize,
+					FlynnColors.LIGHTSKYBLUE
+					);
+				break;
+			case ButtonEvent.HoldTapRight:
+				this.soundTorpedo.play();
+				this.projectiles.add(
+					new Victor(
+						this.ship.world_x + ShipWidth/2,
+						this.ship.world_y),
+					new Victor(ShipShotVelocity, 0),
+					ShipShotLife,
+					ShipShotSize,
+					FlynnColors.LIGHTSKYBLUE
+					);
+				break;
 			case ButtonEvent.DoubleTap:
+				this.soundBubblesHigh.play();
 				this.ship.vel.y += ShipThrustUpVelocity;
+				this.particles.exhaust(
+					this.ship.world_x,
+					this.ship.world_y + shipRadius,
+					this.ship.vel.x,
+					this.ship.vel.y,
+					ShipExhaustRate*4,
+					ShipExhaustVelocity*1.4,
+					Math.PI/2, // Angle
+					ShipExhaustSpread,
+					paceFactor
+				);
 				break;
 			case ButtonEvent.TapLeft:
+				this.soundBubblesLow.play();
 				this.ship.vel.x -= ShipThrustSideVelocity;
+				this.particles.exhaust(
+					this.ship.world_x + ShipWidth/2,
+					this.ship.world_y,
+					this.ship.vel.x,
+					this.ship.vel.y,
+					ShipExhaustRate,
+					ShipExhaustVelocity,
+					0, // Angle
+					ShipExhaustSpread,
+					paceFactor
+				);
 				break;
 			case ButtonEvent.TapRight:
+				this.soundBubblesLow.play();
 				this.ship.vel.x += ShipThrustSideVelocity;
+				this.particles.exhaust(
+					this.ship.world_x - ShipWidth/2,
+					this.ship.world_y,
+					this.ship.vel.x,
+					this.ship.vel.y,
+					ShipExhaustRate,
+					ShipExhaustVelocity,
+					Math.PI, // Angle
+					ShipExhaustSpread,
+					paceFactor
+				);
 				break;
 			case ButtonEvent.DoubleHold:
+				if (!this.playingSoundBubblesFast) {
+					this.soundBubblesFast.play();
+					this.playingSoundBubblesFast = true;
+				}
 				this.ship.vel.y += ShipThrustDiveVelocity;
+				var openingWidth = 25;
+				this.particles.exhaust(
+					this.ship.world_x + Math.random() * openingWidth - openingWidth/2,
+					this.ship.world_y + shipRadius,
+					this.ship.vel.x,
+					this.ship.vel.y,
+					1, // Rate
+					0,
+					Math.PI, // Angle
+					ShipExhaustSpread,
+					paceFactor
+				);
 				break;
+			default:
+				if(this.playingSoundBubblesFast){
+					this.playingSoundBubblesFast = false;
+					this.soundBubblesFast.stop();
+				}
 		}
 
 		// if (input.virtualButtonIsDown("rotate left")){
@@ -342,9 +451,10 @@ var StateGame = FlynnState.extend({
 				}
 			}
 		}
-		var shipRadius = 25;
-		if(this.ship.world_y > this.canvasHeight - shipRadius){
-			this.ship.world_y = this.canvasHeight - shipRadius;
+		
+		var fudgeFactor = 4; //TODO:fix
+		if(this.ship.world_y > this.canvasHeight - (shipRadius+fudgeFactor)){
+			this.ship.world_y = this.canvasHeight - (shipRadius+fudgeFactor);
 			this.ship.vel.y = 0;
 		}
 		if(this.ship.world_y < shipRadius){
@@ -363,7 +473,7 @@ var StateGame = FlynnState.extend({
 		//-------------------
 		// Projectiles
 		//-------------------
-		// this.projectiles.update(paceFactor);
+		this.projectiles.update(paceFactor);
 		// // Collision detect
 		// for(i=0, len=this.projectiles.projectiles.length; i<len; i++){
 		// 	if(this.ship.visible && this.ship.hasPoint(
@@ -393,7 +503,7 @@ var StateGame = FlynnState.extend({
 
 
 		// Particles
-		//this.particles.update(paceFactor);
+		this.particles.update(paceFactor);
 	},
 
 	render: function(ctx){
@@ -410,8 +520,11 @@ var StateGame = FlynnState.extend({
 		// Player
 		this.ship.draw(ctx, this.viewport_v.x, this.viewport_v.y);
 
+		// Particles
+		this.particles.draw(ctx, this.viewport_v.x, this.viewport_v.y);
+
 		// Projectiles
-		//this.projectiles.draw(ctx, this.viewport_v);
+		this.projectiles.draw(ctx, this.viewport_v);
 
 
 		// Scores
