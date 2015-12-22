@@ -31,6 +31,10 @@ var ShipRespawnDelayTicks = 60 * 3;
 var PopUpTextLife = 3 * 60;
 var PopUpCancelTime = 15; // Ticks to remove a pop-up when canceled
 
+var soundSideThrustTicks = 20;
+var soundAscentThrustTicks = 20;
+
+
 var StateGame = FlynnState.extend({
 
 	init: function(mcp) {
@@ -69,7 +73,8 @@ var StateGame = FlynnState.extend({
         });
         this.soundBubblesLow = new Howl({
             src: ['sounds/bubbles_low.mp3'],
-            volume: 0.5
+            volume: 0.5,
+            loop: true
         });
         this.soundBubblesHigh = new Howl({
             src: ['sounds/bubbles_high.mp3'],
@@ -85,14 +90,19 @@ var StateGame = FlynnState.extend({
             volume: 0.5
         });
         this.playingSoundBubblesFast = false;
+        this.playingSoundBubblesSide = false;
+        this.playingSoundBubblesAscent = false;
 
         this.viewport_v = new Victor(0,0);
 
         this.buttonHandler = [null, null];
         this.buttonHandler[0] = new TwoButton('P1 left', 'P1 right');
         this.buttonHandler[1] = new TwoButton('P2 left', 'P2 right');
-	
 
+        // Timers
+		this.mcp.timers.add('soundSideThrust', 0, null);
+		this.mcp.timers.add('soundAscentThrust', 0, null);
+	
 		// Game Clock
 		this.gameClock = 0;
 
@@ -308,7 +318,11 @@ var StateGame = FlynnState.extend({
 					);
 				break;
 			case ButtonEvent.DoubleTap:
-				this.soundBubblesHigh.play();
+				this.mcp.timers.set('soundAscentThrust', soundAscentThrustTicks);
+				if(!this.playingSoundBubblesAscent){
+					this.soundBubblesHigh.play();
+					this.playingSoundBubblesAscent = true;
+				}
 				this.ship.vel.y += ShipThrustUpVelocity;
 				this.particles.exhaust(
 					this.ship.world_x,
@@ -323,7 +337,11 @@ var StateGame = FlynnState.extend({
 				);
 				break;
 			case ButtonEvent.TapLeft:
-				this.soundBubblesLow.play();
+				this.mcp.timers.set('soundSideThrust', soundSideThrustTicks);
+				if(!this.playingSoundBubblesSide){
+					this.soundBubblesLow.play();
+					this.playingSoundBubblesSide = true;
+				}
 				this.ship.vel.x -= ShipThrustSideVelocity;
 				this.particles.exhaust(
 					this.ship.world_x + ShipWidth/2,
@@ -338,7 +356,11 @@ var StateGame = FlynnState.extend({
 				);
 				break;
 			case ButtonEvent.TapRight:
-				this.soundBubblesLow.play();
+				this.mcp.timers.set('soundSideThrust', soundSideThrustTicks);
+				if(!this.playingSoundBubblesSide){
+					this.soundBubblesLow.play();
+					this.playingSoundBubblesSide = true;
+				}
 				this.ship.vel.x += ShipThrustSideVelocity;
 				this.particles.exhaust(
 					this.ship.world_x - ShipWidth/2,
@@ -376,6 +398,15 @@ var StateGame = FlynnState.extend({
 					this.playingSoundBubblesFast = false;
 					this.soundBubblesFast.stop();
 				}
+		}
+
+		if(!this.mcp.timers.isRunning('soundSideThrust') && this.playingSoundBubblesSide){
+			this.soundBubblesLow.stop();
+			this.playingSoundBubblesSide = false;
+		}
+		if(!this.mcp.timers.isRunning('soundAscentThrust') && this.playingSoundBubblesAscent){
+			this.soundBubblesHigh.stop();
+			this.playingSoundBubblesAscent = false;
 		}
 
 		// if (input.virtualButtonIsDown("rotate left")){

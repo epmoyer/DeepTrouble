@@ -84,7 +84,7 @@ var TwoButton = Class.extend({
             case ButtonStates.L_R:
                 if (bLeft && !bRight && bStable){
                     this.bState  = ButtonStates.L_R_L;
-                    bEvent = ButtonEvent.HoldTapRight;
+                    bEvent = ButtonEvent.HoldTapLeft;
                 }
                 else if (!bLeft && !bRight && bStable){
                     this.bState = ButtonStates.IDLE;
@@ -115,7 +115,7 @@ var TwoButton = Class.extend({
             case ButtonStates.R_L:
                 if (!bLeft && bRight && bStable){
                     this.bState  = ButtonStates.R_L_R;
-                    bEvent = ButtonEvent.HoldTapLeft;
+                    bEvent = ButtonEvent.HoldTapRight;
                 }
                 else if (!bLeft && !bRight && bStable){
                     this.bState = ButtonStates.IDLE;
