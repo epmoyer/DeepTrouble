@@ -1,107 +1,156 @@
 var ButtonEvent = {
-    TapLeft: 0,
-    TapRight: 1,
-    DoubleTap: 2,
-    DoubleHold: 3,
-    PullLeft: 4,
-    PullRight: 5,
-    RollLeft: 6,
-    RollRight: 7,
-    DoubleRollLeft: 8,
-    DoubleRollRight: 9,
-    BounceLeft: 10,
-    BounceRight: 11,
-    HoldTapLeft: 12,
-    HoldTapRight: 13,
+    TapLeft: 1,
+    TapRight: 2,
+    DoubleTap: 3,
+    DoubleHold: 4,
+    PullLeft: 5,
+    PullRight: 6,
+    RollLeft: 7,
+    RollRight: 8,
+    DoubleRollLeft: 9,
+    DoubleRollRight: 10,
+    BounceLeft: 11,
+    BounceRight: 12,
+    HoldTapLeft: 13,
+    HoldTapRight: 14,
 };
 
 var ButtonStates = {
-    STATE_IDLE: 0,
-    STATE_L: 1,
-    STATE_R: 2,
-    STATE_LR: 3,
-    STATE_L_R: 4,
-    STATE_R_L: 5,
-    STATE_LR_HOLD: 6,
-    STATE_LR_CANCELING: 7,
+    IDLE: 0,
+    L: 1,
+    R: 2,
+    LR: 3,
+    L_R: 4,
+    L_R_L: 5,
+    R_L: 6,
+    R_L_R: 7,
+    LR_HOLD: 8,
+    LR_CANCELING: 9,
 };
 
-TimeDebounceSec = 3/60.0;
-TimeDoubleHoldSec = 6/60.0;
+var TimeDebounceSec = 4/60.0;
+var TimeDoubleHoldSec = 8/60.0;
 
 var TwoButton = Class.extend({
     
     init: function(leftButtonName, rightButtonName) {
         this.leftButtonName = leftButtonName;
         this.rightButtonName = rightButtonName;
-        this.bState = ButtonStates.STATE_IDLE;
-        this.bStable = true;
-        this.bStateHoldTime = 0;
+        this.bState = ButtonStates.IDLE;
+        this.bStableTimeSec = 0;
+        this.bStateHoldTimeSec = 0;
+        this.bLeftPrevious = false;
+        this.bRightPrevious = false;
     },
 
-    udpate: function(paceFactor){
+    update: function(input, paceFactor){
 
         bStatePrevious = this.bState;
-        this.bStateHoldTime += paceFactor * 1/60.0;
+        this.bStateHoldTime += paceFactor/60.0;
 
         bEvent = null; 
         bLeft = input.virtualButtonIsDown(this.leftButtonName);
         bRight = input.virtualButtonIsDown(this.rightButtonName);
+        bStable = false;
+        if (bLeft == this.bLeftPrevious && bRight == this.bRightPrevious){
+            this.bStableTimeSec += paceFactor/60.0;
+            if (this.bStableTimeSec >= TimeDebounceSec){
+                bStable = true;
+            } 
+        } else{
+            this.bStableTimeSec = 0.0;
+        }
+        this.bLeftPrevious = bLeft;
+        this.bRightPrevious = bRight;
 
         switch(this.bState){
-            case ButtonStates.STATE_IDLE:
-                if (bLeft && bRight) this.bState = ButtonStates.STATE_LR;
-                else if (bLeft && bStable) this.bState = ButtonStates.STATE_L;
-                else if (bRight && bStable) this.bState = ButtonStates.STATE_R;
+            case ButtonStates.IDLE:
+                if (bLeft && bRight) this.bState = ButtonStates.LR;
+                else if (bLeft && bStable){
+                    this.bState = ButtonStates.L;
+                }
+                else if (bRight && bStable) this.bState = ButtonStates.R;
                 break;
 
-            case ButtonStates.STATE_L:
+            case ButtonStates.L:
                 if (!bLeft){
-                    this.bState  = ButtonStates.STATE_IDLE;
+                    this.bState  = ButtonStates.IDLE;
                     bEvent = ButtonEvent.TapLeft;
                 }
                 else if (bRight){
-                    this.bState = ButtonStates.STATE_L_R;
+                    this.bState = ButtonStates.L_R;
                 }
                 break;
 
-            case ButtonStates.STATE_L_R:
+            case ButtonStates.L_R:
                 if (bLeft && !bRight && bStable){
-                    this.bState  = ButtonStates.STATE_L_R_L;
+                    this.bState  = ButtonStates.L_R_L;
                     bEvent = ButtonEvent.HoldTapRight;
                 }
-                else if (!bleft && !bright && bStable){
-                    this.bState = ButtonStates.STATE_IDLE;
+                else if (!bLeft && !bRight && bStable){
+                    this.bState = ButtonStates.IDLE;
                 }
                 break;
 
-            case ButtonStates.STATE_R:
+            case ButtonStates.L_R_L:
+                if (bLeft && bRight && bStable){
+                    // Allow "TapRight" Chaining
+                    this.bState  = ButtonStates.L_R;
+                }
+                if (!bLeft && !bRight && bStable){
+                    // Release
+                    this.bState  = ButtonStates.IDLE;
+                }
+                break;
+
+            case ButtonStates.R:
                 if (!bRight){
-                    this.bState  = ButtonStates.STATE_IDLE;
+                    this.bState  = ButtonStates.IDLE;
                     bEvent = ButtonEvent.TapRight;
                 }
                 else if (bLeft){
-                    this.bState = ButtonStates.STATE_R_L;
+                    this.bState = ButtonStates.R_L;
                 }
                 break;
 
-            case ButtonStates.STATE_LR:
+            case ButtonStates.R_L:
+                if (!bLeft && bRight && bStable){
+                    this.bState  = ButtonStates.R_L_R;
+                    bEvent = ButtonEvent.HoldTapLeft;
+                }
+                else if (!bLeft && !bRight && bStable){
+                    this.bState = ButtonStates.IDLE;
+                }
+                break;
+
+            case ButtonStates.R_L_R:
+                if (bLeft && bRight && bStable){
+                    // Allow "TapLeft" Chaining
+                    this.bState  = ButtonStates.R_L;
+                }
+                if (!bLeft && !bRight && bStable){
+                    // Release
+                    this.bState  = ButtonStates.IDLE;
+                }
+                break;
+
+            case ButtonStates.LR:
                 if (!bLeft && !bRight){
-                    this.bState  = ButtonStates.STATE_IDLE;
+                    this.bState  = ButtonStates.IDLE;
                     bEvent = ButtonEvent.DoubleTap;
                 }
-                if(bLeft && bRight && (this.bStateHoldTime >= TimeDoubleHoldSec)){
-                    this.bState = ButtonStates.STATE_LR_HOLD;
+                if(bLeft && bRight && (this.bStateHoldTimeSec >= TimeDoubleHoldSec)){
+                    this.bState = ButtonStates.LR_HOLD;
                     bEvent = ButtonEvent.DoubleHold;
                 }
                 break;
 
-            case ButtonStates.STATE_LR_HOLD:
+            case ButtonStates.LR_HOLD:
                 if (!bLeft && !bRight){
-                    this.bState = ButtonStates.STATE_IDLE;
+                    this.bState = ButtonStates.IDLE;
                 }
-                else if (bLeft || bRight){
-                    this.bState = ButtonStates.STATE_LR_CANCELING;
+                else if ((bLeft && !bRight) || (!bLeft && bRight)){
+                    this.bState = ButtonStates.LR_CANCELING;
                 }
                 else{
                     bEvent = ButtonEvent.DoubleHold;
@@ -109,17 +158,22 @@ var TwoButton = Class.extend({
 
                 break;
 
-            case ButtonStates.STATE_LR_CANCELING:
+            case ButtonStates.LR_CANCELING:
                 if (!bLeft && !bRight){
-                    this.bState = ButtonStates.STATE_IDLE;
+                    this.bState = ButtonStates.IDLE;
                 }
                 break;
 
         }
 
         if (this.bState != bStatePrevious){
-            this.bStateHoldTime = 0;
+            this.bStateHoldTimeSec = 0;
         }
+        else{
+            this.bStateHoldTimeSec += paceFactor / 60.0;
+        }
+
+        return(bEvent);
     },
 
 });

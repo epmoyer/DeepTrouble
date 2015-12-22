@@ -3,8 +3,11 @@
 //    Core gameplay
 //--------------------------------------------
 
-var Gravity = 0.00;
-var AtmosphericFriction = 0.005;
+var Gravity = 0.005;
+var AtmosphericFriction = 0.02;
+var ShipThrustUpVelocity = -1.0;
+var ShipThrustDiveVelocity = 0.04;
+var ShipThrustSideVelocity = 0.35;
 
 var ShipThrust = 0.20;
 var ShipStartAngle = 0;
@@ -56,10 +59,16 @@ var StateGame = FlynnState.extend({
         });
 
         this.viewport_v = new Victor(0,0);
+
+        this.buttonHandler = [null, null];
+        this.buttonHandler[0] = new TwoButton('P1 left', 'P1 right');
+        this.buttonHandler[1] = new TwoButton('P2 left', 'P2 right');
 	
 
 		// Game Clock
 		this.gameClock = 0;
+
+		this.sonar_timer = 1.0;
 
 		// Timers
 		//this.mcp.timers.add('shipRespawnDelay', ShipRespawnDelayGameStartTicks, null);  // Start game with a delay (for start sound to finish)
@@ -238,50 +247,78 @@ var StateGame = FlynnState.extend({
 			return;
 		}
 
-		if (input.virtualButtonIsDown("rotate left")){
-			this.ship.rotate_by(-ShipRotationSpeed * paceFactor);
-		}
-		if (input.virtualButtonIsDown("rotate right")){
-			this.ship.rotate_by(ShipRotationSpeed * paceFactor);
+		var player = 0;
+
+		var bEvent = this.buttonHandler[player].update(input, paceFactor);
+		if(bEvent !== null){
+			console.log(bEvent);
 		}
 
-		if (input.virtualButtonIsDown("thrust")){
-			this.thrustHasOccurred = true;
-			this.popUpThrustPending = false;
-			if(!this.engine_is_thrusting){
-				this.engine_sound.play();
-				this.engine_is_thrusting = true;
-			}
-			this.ship.vel.x += Math.cos(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
-			this.ship.vel.y += Math.sin(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
-			this.particles.exhaust(
-				this.ship.world_x + Math.cos(this.ship.angle + Math.PI/2) * ShipToExhastLength - 1,
-				this.ship.world_y + Math.sin(this.ship.angle + Math.PI/2) * ShipToExhastLength,
-				this.ship.vel.x,
-				this.ship.vel.y,
-				ShipExhaustRate,
-				ShipExhaustVelocity,
-				this.ship.angle + Math.PI/2,
-				ShipExhaustSpread,
-				paceFactor
-			);
-
-			// Cancel PopUp
-			if(this.popUpThrustActive){
-				this.popUpLife = Math.min(PopUpCancelTime, this.popUpLife);
-			}
-		} else {
-			if (this.engine_is_thrusting){
-				this.engine_sound.stop();
-				this.engine_is_thrusting = false;
-			}
+		switch(bEvent){
+			case ButtonEvent.DoubleTap:
+				this.ship.vel.y += ShipThrustUpVelocity;
+				break;
+			case ButtonEvent.TapLeft:
+				this.ship.vel.x -= ShipThrustSideVelocity;
+				break;
+			case ButtonEvent.TapRight:
+				this.ship.vel.x += ShipThrustSideVelocity;
+				break;
+			case ButtonEvent.DoubleHold:
+				this.ship.vel.y += ShipThrustDiveVelocity;
+				break;
 		}
+
+		// if (input.virtualButtonIsDown("rotate left")){
+		// 	this.ship.rotate_by(-ShipRotationSpeed * paceFactor);
+		// }
+		// if (input.virtualButtonIsDown("rotate right")){
+		// 	this.ship.rotate_by(ShipRotationSpeed * paceFactor);
+		// }
+
+		// if (input.virtualButtonIsDown("thrust")){
+		// 	this.thrustHasOccurred = true;
+		// 	this.popUpThrustPending = false;
+		// 	if(!this.engine_is_thrusting){
+		// 		this.engine_sound.play();
+		// 		this.engine_is_thrusting = true;
+		// 	}
+		// 	this.ship.vel.x += Math.cos(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
+		// 	this.ship.vel.y += Math.sin(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
+		// 	this.particles.exhaust(
+		// 		this.ship.world_x + Math.cos(this.ship.angle + Math.PI/2) * ShipToExhastLength - 1,
+		// 		this.ship.world_y + Math.sin(this.ship.angle + Math.PI/2) * ShipToExhastLength,
+		// 		this.ship.vel.x,
+		// 		this.ship.vel.y,
+		// 		ShipExhaustRate,
+		// 		ShipExhaustVelocity,
+		// 		this.ship.angle + Math.PI/2,
+		// 		ShipExhaustSpread,
+		// 		paceFactor
+		// 	);
+
+		// 	// Cancel PopUp
+		// 	if(this.popUpThrustActive){
+		// 		this.popUpLife = Math.min(PopUpCancelTime, this.popUpLife);
+		// 	}
+		// } else {
+		// 	if (this.engine_is_thrusting){
+		// 		this.engine_sound.stop();
+		// 		this.engine_is_thrusting = false;
+		// 	}
+		// }
 	},
 
 	update: function(paceFactor) {
 		var i, len, b, numOusideEnemies, outsideEnemyAngles;
 
 		this.gameClock += paceFactor;
+
+		this.sonar_timer -= (1/60.0) * paceFactor;
+        if (this.sonar_timer<0){
+            this.sonar_timer = SonarPingIntervalSec;
+            this.soundSonarPing.play();
+        }
 
 		if (this.ship.visible){
 			// Update ship
@@ -304,6 +341,23 @@ var StateGame = FlynnState.extend({
 					this.resetShip();
 				}
 			}
+		}
+		var shipRadius = 25;
+		if(this.ship.world_y > this.canvasHeight - shipRadius){
+			this.ship.world_y = this.canvasHeight - shipRadius;
+			this.ship.vel.y = 0;
+		}
+		if(this.ship.world_y < shipRadius){
+			this.ship.world_y = shipRadius;
+			this.ship.vel.y = 0;
+		}
+		if(this.ship.world_x > this.canvasWidth - shipRadius){
+			this.ship.world_x = this.canvasWidth - shipRadius;
+			this.ship.vel.x = 0;
+		}
+		if(this.ship.world_x < shipRadius){
+			this.ship.world_x = shipRadius;
+			this.ship.vel.x = 0;
 		}
 
 		//-------------------
@@ -368,6 +422,11 @@ var StateGame = FlynnState.extend({
 		//for(var i=0; i<this.lives; i++){
 		//	ctx.drawPolygon(this.lifepolygon, 20+20*i, 55);
 		//}
+
+		ctx.vectorStart(FlynnColors.BLUE);
+		ctx.vectorMoveTo(0, this.canvasHeight-2);
+		ctx.vectorLineTo(this.canvasWidth, this.canvasHeight-2);
+		ctx.vectorEnd();
 
 
 		//------------
