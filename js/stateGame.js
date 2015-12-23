@@ -236,35 +236,6 @@ var StateGame = FlynnState.extend({
 				this.doShipDie();
 			}
 
-			// Kill Human
-			if (input.virtualButtonIsPressed("dev_kill_human")){
-				if(this.humans.length){
-					this.humans.splice(0,1);
-				}
-			}
-
-			// Jump to rescue Pad
-			if (input.virtualButtonIsPressed("dev_rescue")){
-				this.ship.world_x = this.pads[0].world_x;
-				this.ship.world_y = this.pads[0].world_y - 40;
-				this.ship.vel.x = 0;
-				this.ship.vel.y = 0;
-				this.ship.angle = ShipStartAngle;
-				this.ship.setAngle(ShipStartAngle);
-				this.viewport_v.x = this.ship.world_x;
-			}
-
-			// Jump to base Pad
-			if (input.virtualButtonIsPressed("dev_base")){
-				this.ship.world_x = this.pads[1].world_x;
-				this.ship.world_y = this.pads[1].world_y - 40;
-				this.ship.vel.x = 0;
-				this.ship.vel.y = 0;
-				this.ship.angle = ShipStartAngle;
-				this.ship.setAngle(ShipStartAngle);
-				this.viewport_v.x = this.ship.world_x - this.canvasWidth;
-			}
-
 		}
 		
 		if(!this.ship.visible){
@@ -288,9 +259,9 @@ var StateGame = FlynnState.extend({
 		var player = 0;
 
 		var bEvent = this.buttonHandler[player].update(input, paceFactor);
-		if(bEvent !== null){
-			console.log(bEvent);
-		}
+		// if(bEvent !== null){
+		// 	console.log(bEvent);
+		// }
 
 		switch(bEvent){
 			case ButtonEvent.HoldTapLeft:
@@ -408,45 +379,6 @@ var StateGame = FlynnState.extend({
 			this.soundBubblesHigh.stop();
 			this.playingSoundBubblesAscent = false;
 		}
-
-		// if (input.virtualButtonIsDown("rotate left")){
-		// 	this.ship.rotate_by(-ShipRotationSpeed * paceFactor);
-		// }
-		// if (input.virtualButtonIsDown("rotate right")){
-		// 	this.ship.rotate_by(ShipRotationSpeed * paceFactor);
-		// }
-
-		// if (input.virtualButtonIsDown("thrust")){
-		// 	this.thrustHasOccurred = true;
-		// 	this.popUpThrustPending = false;
-		// 	if(!this.engine_is_thrusting){
-		// 		this.engine_sound.play();
-		// 		this.engine_is_thrusting = true;
-		// 	}
-		// 	this.ship.vel.x += Math.cos(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
-		// 	this.ship.vel.y += Math.sin(this.ship.angle - Math.PI/2) * ShipThrust * paceFactor;
-		// 	this.particles.exhaust(
-		// 		this.ship.world_x + Math.cos(this.ship.angle + Math.PI/2) * ShipToExhastLength - 1,
-		// 		this.ship.world_y + Math.sin(this.ship.angle + Math.PI/2) * ShipToExhastLength,
-		// 		this.ship.vel.x,
-		// 		this.ship.vel.y,
-		// 		ShipExhaustRate,
-		// 		ShipExhaustVelocity,
-		// 		this.ship.angle + Math.PI/2,
-		// 		ShipExhaustSpread,
-		// 		paceFactor
-		// 	);
-
-		// 	// Cancel PopUp
-		// 	if(this.popUpThrustActive){
-		// 		this.popUpLife = Math.min(PopUpCancelTime, this.popUpLife);
-		// 	}
-		// } else {
-		// 	if (this.engine_is_thrusting){
-		// 		this.engine_sound.stop();
-		// 		this.engine_is_thrusting = false;
-		// 	}
-		// }
 	},
 
 	update: function(paceFactor) {
@@ -505,6 +437,16 @@ var StateGame = FlynnState.extend({
 		// Projectiles
 		//-------------------
 		this.projectiles.update(paceFactor);
+		for(i=0, len=this.projectiles.projectiles.length; i<len; i++){
+			if(Math.random()< 0.10){
+				this.particles.bubble(
+					this.projectiles.projectiles[i].world_position_v.x,
+					this.projectiles.projectiles[i].world_position_v.y,
+					this.projectiles.projectiles[i].velocity_v.x * 0.5,
+					this.projectiles.projectiles[i].velocity_v.y * 0.5
+					);
+			}
+		}
 		// // Collision detect
 		// for(i=0, len=this.projectiles.projectiles.length; i<len; i++){
 		// 	if(this.ship.visible && this.ship.hasPoint(

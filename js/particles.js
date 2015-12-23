@@ -5,7 +5,7 @@ var ParticleFriction = 0.99;
 var ParticleGravity = 0.06;
 var BubbleGravity = -0.01;
 var BubbleLife = 500;
-var BubbleLifeVariation = 30;
+var BubbleLifeVariation = 250;
 
 var ParticleTypes = {
     DEBRIS:    1,
@@ -62,11 +62,9 @@ var Particle = Class.extend({
         } else {
             //ctx.fillStyle=FlynnColors.RED;
             var brightness = 128 * (this.life / BubbleLife);
-            brightness = Math.floor(brightness);
-            if(brightness<0){
-                brightness = 0;
-            }
-            ctx.fillStyle = flynnRgbToHex(brightness, brightness, brightness);
+            brightness = Math.max(Math.floor(brightness), 0);
+            dim_brightness = Math.max(brightness - 20, 0);
+            ctx.fillStyle = flynnRgbToHex(dim_brightness, dim_brightness, brightness);
         }
         //console.log(this.x, this.y);
         ctx.fillRect(this.x - viewport_x,this.y - viewport_y,2,2);
@@ -84,6 +82,19 @@ var Particles = Class.extend({
 
     reset: function(){
         this.init(this.gameState);
+    },
+
+    bubble: function(x, y, dx, dy){
+        this.particles.push(new Particle(
+                this,
+                x,
+                y,
+                dx,
+                dy,
+                FlynnColors.RED, // Ignored
+                ParticleTypes.BUBBLE,
+                this.gameState
+            ));
     },
 
     explosion: function(x, y, dx, dy, quantity, max_velocity, color, particle_type) {
