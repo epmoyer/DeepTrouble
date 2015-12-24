@@ -70,7 +70,7 @@ var StateMenu = FlynnState.extend({
 
 	update: function(paceFactor) {
         this.sonar_timer -= (1/60.0) * paceFactor;
-        if (this.sonar_timer<0){
+        if (this.sonar_timer<0 && this.mcp.optionManager.getOption('musicEnabled')){
             this.sonar_timer = SonarPingIntervalSec;
             this.soundSonarPing.play();
         }
@@ -101,36 +101,33 @@ var StateMenu = FlynnState.extend({
         var controlsText1='', controlsText2='';
         if (this.mcp.arcadeModeEnabled) {
             startText = "PRESS START";
-            controlsText1 = "LEFT AND RIGHT BUTTONS TO CONTROL EVERYTHING";
+            controlsText1 = "TWO WHITE BUTTONS CONTROL EVERYTHING";
             controlsText2 = " ";
-            ctx.vectorText(this.mcp.credits + " Credits", 2, 10, this.canvasHeight - 20, null, FlynnColors.CYAN);
+            ctx.vectorText(this.mcp.credits + " Credits", 2, 10, this.canvasHeight - 20, null, FlynnColors.GREEN);
         }
         else {
-            if (!this.mcp.browserSupportsTouch) {
-                startText = "PRESS <ENTER> TO START";
-            }
-            else{
-                startText = "PUSH AYWHERE TO START";
-                controlsText2 = "LEFT/RIGHT BUTTONS TO CONTROL EVERYTHING";
+            // Show all control keys
+            var y = 180;
+            var x = this.canvasWidth/2 + 50;
+            var i, len;
+            var names = this.mcp.input.getConfigurableVirtualButtonNames();
+            for(i = 0, len = names.length; i<len; i++){
+                ctx.vectorText(names[i]+":", 2, x, y, -1, FlynnColors.LIGHTBLUE);
+                ctx.vectorText(this.mcp.input.getVirtualButtonBoundKeyName(names[i]), 2, x, y, null, FlynnColors.LIGHTBLUE);
+                y += 20;
             }
         }
+
+        // Show controls text (short text for arcade mode)
+        ctx.vectorText(controlsText1, 2, null, 280, null, FlynnColors.LIGHTBLUE);
+        ctx.vectorText(controlsText2, 2, null, 295, null, FlynnColors.LIGHTBLUE);
+
 
         // Start Text
         if(!this.mcp.arcadeModeEnabled || (this.mcp.arcadeModeEnabled && (this.mcp.credits > 0))) {
             if (Math.floor(this.mcp.clock / 40) % 2 == 1) {
                 ctx.vectorText(startText, 2, null, 300, null, FlynnColors.LIGHTSKYBLUE);
             }
-        }
-
-        // Show Controls
-        var y = 180;
-        var x = this.canvasWidth/2 + 50;
-        var i, len;
-        var names = this.mcp.input.getConfigurableVirtualButtonNames();
-        for(i = 0, len = names.length; i<len; i++){
-            ctx.vectorText(names[i]+":", 2, x, y, -1, FlynnColors.LIGHTBLUE);
-            ctx.vectorText(this.mcp.input.getVirtualButtonBoundKeyName(names[i]), 2, x, y, null, FlynnColors.LIGHTBLUE);
-            y += 20;
         }
 
         ctx.vectorText("A TWO-PLAYER TWO-BUTTON DEEP-SEA BATTLE", 1.8, null, 500, null, FlynnColors.DODGERBLUE);

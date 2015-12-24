@@ -36,7 +36,7 @@ var Game = Class.extend({
 							'HIGH SCORES',
 							'YOU MADE IT TO THE HIGH SCORE LIST!');
 					case States.CONFIG:
-						return new FlynnStateConfig(self.mcp, FlynnColors.ORANGE, FlynnColors.YELLOW, FlynnColors.CYAN, FlynnColors.MAGENTA);
+						return new FlynnStateConfig(self.mcp, FlynnColors.DODGERBLUE, FlynnColors.LIGHTBLUE, FlynnColors.GREEN, FlynnColors.MAGENTA);
 				}
 			}
 		);
@@ -79,15 +79,13 @@ var Game = Class.extend({
 		if(this.mcp.arcadeModeEnabled){
 			this.input.addVirtualButton('quarter', FlynnKeyboardMap['5'], FlynnConfigurable);
 			this.input.addVirtualButton('start_1', FlynnKeyboardMap['1'], FlynnConfigurable);
-			this.input.addVirtualButton('thrust', FlynnKeyboardMap['r'], FlynnConfigurable);
-			// In arcade mode re-bind rotate right to spacebar
-			this.input.addVirtualButton('rotate right', FlynnKeyboardMap['spacebar'], FlynnConfigurable);
 		}
 
 		// Options
-		this.mcp.optionManager.addOptionFromVirtualButton('rotate left');
-		this.mcp.optionManager.addOptionFromVirtualButton('rotate right');
-		this.mcp.optionManager.addOptionFromVirtualButton('thrust');
+		this.mcp.optionManager.addOptionFromVirtualButton('P1 left');
+		this.mcp.optionManager.addOptionFromVirtualButton('P1 right');
+		this.mcp.optionManager.addOptionFromVirtualButton('P2 left');
+		this.mcp.optionManager.addOptionFromVirtualButton('P2 right');
 		this.mcp.optionManager.addOption('musicEnabled', FlynnOptionType.BOOLEAN, true, true, 'MUSIC', null, null);
 		this.mcp.optionManager.addOption('resetScores', FlynnOptionType.COMMAND, true, true, 'RESET HIGH SCORES', null,
 			function(){self.resetScores();});
