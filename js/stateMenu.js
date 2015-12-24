@@ -19,13 +19,13 @@ var StateMenu = FlynnState.extend({
 		});
 
         this.soundInsertCoin = new Howl({
-            src: ['sounds/InsertCoin.ogg','sounds/InsertCoin.mp3'],
-            volume: 0.5
+            src: ['sounds/bubble_single.mp3'],
+            volume: 1.0
         });
 
         this.soundSonarPing = new Howl({
             src: ['sounds/sonar_ping.mp3'],
-            volume: 0.5
+            volume: 0.3
         });
 
         this.sonar_timer = 1.0;

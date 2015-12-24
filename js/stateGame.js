@@ -77,7 +77,7 @@ var StateGame = FlynnState.extend({
 
 		this.soundSonarPing = new Howl({
             src: ['sounds/sonar_ping.mp3'],
-            volume: 0.5
+            volume: 0.3
         });
         this.soundSideThrust = new Howl({
             src: ['sounds/bubbles_low.mp3'],
