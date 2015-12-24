@@ -51,10 +51,10 @@ var StateGame = FlynnState.extend({
 		this.ships = [];
 		for(var i =0; i<numPlayers; i++){
 			this.ships[i] = new Ship(Points.SUB, 2.5,
-				this.center_x,
+				this.center_x + (i===0 ? -200 : 200),
 				this.center_y,
 				ShipStartAngle, 
-				i === 0 ? FlynnColors.DODGERBLUE : FlynnColors.RED
+				i === 0 ? FlynnColors.DODGERBLUE : '#a00000'
 				);
 
 			this.ships[i].visible = true;
@@ -123,6 +123,8 @@ var StateGame = FlynnState.extend({
 		// Set initial ship position (hidden; will respawn into world)
 		//this.resetShip();
 		//this.hideShip();
+
+		this.controlsMenu = new ControlsMenu(mcp.canvas.ctx, new Victor(10,10), 2, FlynnColors.GRAY);
 	},
 
 	addPoints: function(points, playerIndex, unconditional){
@@ -487,6 +489,8 @@ var StateGame = FlynnState.extend({
 
 	render: function(ctx){
 		ctx.clearAll();
+
+		this.controlsMenu.render();
 
 		// PopUp Text
 		// if(this.popUpLife > 0){

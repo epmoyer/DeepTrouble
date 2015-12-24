@@ -3,7 +3,7 @@
 //    Startup screen
 //--------------------------------------------
 
-var SonarPingIntervalSec = 5.0
+var SonarPingIntervalSec = 5.0;
 
 var StateMenu = FlynnState.extend({
 
@@ -29,6 +29,8 @@ var StateMenu = FlynnState.extend({
         });
 
         this.sonar_timer = 1.0;
+
+        this.controlsMenu = new ControlsMenu(mcp.canvas.ctx, new Victor(10,240), 2, FlynnColors.GRAY);
 	},
 
 	handleInputs: function(input, paceFactor) {
@@ -97,7 +99,7 @@ var StateMenu = FlynnState.extend({
 
         ctx.vectorText("VERSION 0.1", 1.5, null, 140, null, FlynnColors.DODGERBLUE);
 
-        var startText;
+        var startText='';
         var controlsText1='', controlsText2='';
         if (this.mcp.arcadeModeEnabled) {
             startText = "PRESS START";
@@ -136,7 +138,7 @@ var StateMenu = FlynnState.extend({
 		ctx.vectorText("WRITTEN BY ERIC MOYER (FIENDFODDER)", 1.5, null, 700, null, FlynnColors.DODGERBLUE);
         ctx.vectorText('PRESS <ESCAPE> TO CONFIGURE CONTROLS', 1.5, null, 715, null, FlynnColors.DODGERBLUE);
 
-
+        this.controlsMenu.render();
 	}
 
 });
