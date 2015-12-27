@@ -145,7 +145,7 @@ var StateMenu = FlynnState.extend({
             ctx.vectorText('PRESS <TAB> TO EXIT GAME', 1.5, null, 730, null, FlynnColors.DODGERBLUE);
         }
 
-        ctx.vectorText('FLYNN ' + this.mcp.version, 1.0, 3, 768-10, null, FlynnColors.GRAY);
+        ctx.vectorText('FLYNN ' + this.mcp.version, 1.0, this.canvasWidth-3, this.canvasHeight-10, 0, FlynnColors.GRAY);
 
         this.controlsMenu.render();
 	}
