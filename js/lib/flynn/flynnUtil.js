@@ -9,6 +9,18 @@ function flynnGetUrlValue(VarSearch){
     }
 }
 
+function flynnGetUrlFlag(VarSearch){
+    var SearchString = window.location.search.substring(1);
+    var VariableArray = SearchString.split('&');
+    for(var i = 0; i < VariableArray.length; i++){
+        var KeyValuePair = VariableArray[i].split('=');
+        if(KeyValuePair[0] == VarSearch){
+            return true;
+        }
+    }
+    return false;
+}
+
 function flynnHexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {

@@ -27,6 +27,7 @@ var FlynnVirtualButton = Class.extend({
 var FlynnInputHandler = Class.extend({
 	//init: function(keys) {
 	init: function() {
+		this.iCadeModeEnabled = false;
 
 		this.virtualButtons = {};
 		this.touchRegions = {};
@@ -47,9 +48,39 @@ var FlynnInputHandler = Class.extend({
 		this.addUiButton('UI_right',  FlynnKeyboardMap['right']);
 		this.addUiButton('UI_left',   FlynnKeyboardMap['left']);
 
+		// iCade button mapping
+		this.iCade = {
+			keyDownCodes: [],
+			keyUpCodes:   [],
+			buttonNames:  [],
+			buttonCodes:  [],
+		};
+		//                    Name          Down Up
+		this.addiCadeMapping('ICADE_up',    'w', 'e'); // Joytick
+		this.addiCadeMapping('ICADE_down',  'x', 'z');
+		this.addiCadeMapping('ICADE_left',  'a', 'q');
+		this.addiCadeMapping('ICADE_right', 'd', 'c');
+		this.addiCadeMapping('ICADE_T1',    'y', 't'); // Top row buttons
+		this.addiCadeMapping('ICADE_T2',    'u', 'f');
+		this.addiCadeMapping('ICADE_T3',    'i', 'm');
+		this.addiCadeMapping('ICADE_T4',    'o', 'g');
+		this.addiCadeMapping('ICADE_B1',    'h', 'r'); // Bottom row buttons
+		this.addiCadeMapping('ICADE_B2',    'j', 'n');
+		this.addiCadeMapping('ICADE_B3',    'k', 'p');
+		this.addiCadeMapping('ICADE_B4',    'l', 'v');
+
 		var self = this;
-		document.addEventListener("keydown", function(evt) {
-			//console.log("Key Code:" + evt.keyCode); 
+		this.keyDownHandler = function(evt){
+			console.log("KeyDown: Code:" + evt.keyCode);
+			if(self.iCadeModeEnabled){
+				var index = self.iCade.keyDownCodes.indexOf(evt.keyCode);
+				if(index > -1){
+					// Re-throw event as an iCade button down event
+					var newEvt = {keyCode: self.iCade.buttonCodes[index]};
+					self.keyDownHandler(newEvt);
+					return;
+				}
+			}
 
 			// Capture key codes (for user configuration of virualButtons).  Ignore <escape>.
 			if(self.keyCodeCaptureArmed && evt.keyCode != FlynnKeyboardMap['escape']){
@@ -68,9 +99,22 @@ var FlynnInputHandler = Class.extend({
 				name = self.keyCodeToUiButtonName[evt.keyCode];
 				self.uiButtons[name].isDown = true;
 			}
-		});
-		document.addEventListener("keyup", function(evt) {
+		};
+		document.addEventListener("keydown", this.keyDownHandler);
+
+		this.keyUpHandler = function(evt){
+			console.log("KeyUp: Code:" + evt.keyCode);
 			var name;
+			if(self.iCadeModeEnabled){
+				var index = self.iCade.keyUpCodes.indexOf(evt.keyCode);
+				if(index > -1){
+					// Re-throw event as an iCade button up event
+					var newEvt = {keyCode: self.iCade.buttonCodes[index]};
+					self.keyUpHandler(newEvt);
+					return;
+				}
+			}
+
 			if (self.keyCodeToVirtualButtonName[evt.keyCode]){
 				name = self.keyCodeToVirtualButtonName[evt.keyCode];
 				self.virtualButtons[name].isDown = false;
@@ -81,7 +125,8 @@ var FlynnInputHandler = Class.extend({
 				self.uiButtons[name].isDown = false;
 				self.uiButtons[name].pressWasReported = false;
 			}
-		});
+		};
+		document.addEventListener("keyup", this.keyUpHandler);
 
 		try{
 			document.addEventListener(
@@ -138,6 +183,17 @@ var FlynnInputHandler = Class.extend({
 		}
 		catch(err){
 		}
+	},
+
+	addiCadeMapping: function(iCadeButtonName, keyDown, keyUp){
+		this.iCade.buttonNames.push(iCadeButtonName);
+		this.iCade.buttonCodes.push(FlynnKeyboardMap[iCadeButtonName]);
+		this.iCade.keyDownCodes.push(FlynnKeyboardMap[keyDown]);
+		this.iCade.keyUpCodes.push(FlynnKeyboardMap[keyUp]);
+	},
+
+	enableICade: function(){
+		this.iCadeModeEnabled = true;
 	},
 
 	addUiButton: function(name, keyCode){
