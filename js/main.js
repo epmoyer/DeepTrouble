@@ -61,7 +61,6 @@ var Game = Class.extend({
 		this.mcp.custom.leaderboard.saveToCookies();
 
         // Setup inputs
-        console.log("FNORD!");
         if(!this.mcp.iCadeModeEnabled){
 			this.input.addVirtualButton('P1 left',  FlynnKeyboardMap['z'], FlynnConfigurable);
 			this.input.addVirtualButton('P1 right', FlynnKeyboardMap['x'], FlynnConfigurable);
@@ -69,7 +68,6 @@ var Game = Class.extend({
 			this.input.addVirtualButton('P2 right', FlynnKeyboardMap['m'], FlynnConfigurable);
 		}
 		else{
-			console.log("FNORD2!!");
 			this.input.addVirtualButton('P1 left',  FlynnKeyboardMap['ICADE_T1'], FlynnNotConfigurable);
 			this.input.addVirtualButton('P1 right', FlynnKeyboardMap['ICADE_T2'], FlynnNotConfigurable);
 			this.input.addVirtualButton('P2 left',  FlynnKeyboardMap['ICADE_T3'], FlynnNotConfigurable);
@@ -85,16 +83,6 @@ var Game = Class.extend({
 			this.input.addVirtualButton('dev_rescue', FlynnKeyboardMap['0'], FlynnNotConfigurable);
 			this.input.addVirtualButton('dev_base', FlynnKeyboardMap['-'], FlynnNotConfigurable);
 			this.input.addVirtualButton('dev_kill_human', FlynnKeyboardMap[']'], FlynnNotConfigurable);
-		}
-		if(this.mcp.arcadeModeEnabled){
-			if(!this.mcp.iCadeModeEnabled){
-				this.input.addVirtualButton('quarter', FlynnKeyboardMap['5'], FlynnConfigurable);
-				this.input.addVirtualButton('start_1', FlynnKeyboardMap['1'], FlynnConfigurable);
-			}
-			else{
-				this.input.addVirtualButton('quarter', FlynnKeyboardMap['ICADE_B3'], FlynnNotConfigurable);
-				this.input.addVirtualButton('start_1', FlynnKeyboardMap['ICADE_B4'], FlynnNotConfigurable);
-			}
 		}
 
 		// Options

@@ -51,14 +51,16 @@ var StateMenu = FlynnState.extend({
             }
         }
         if(this.mcp.arcadeModeEnabled) {
-            if (input.virtualButtonIsPressed("quarter")) {
+            if (input.virtualButtonIsPressed("UI_quarter")) {
                 this.mcp.credits += 1;
                 this.soundInsertCoin.play();
             }
         }
 
-		if (  ( !this.mcp.arcadeModeEnabled && input.virtualButtonIsPressed("UI_enter")) ||
-            ( this.mcp.arcadeModeEnabled && (this.mcp.credits > 0) && input.virtualButtonIsPressed("start_1")))
+		if (  ( !this.mcp.arcadeModeEnabled && input.virtualButtonIsPressed("UI_enter"))
+           || (  this.mcp.arcadeModeEnabled && (this.mcp.credits > 0)
+              && (  input.virtualButtonIsPressed("UI_start1") 
+                 || input.virtualButtonIsPressed("UI_start2") )))
         {
             this.mcp.credits -= 1;
 			this.mcp.nextState = States.GAME;
