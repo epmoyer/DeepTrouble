@@ -20,6 +20,7 @@ var FlynnMcp = Class.extend({
 		this.developerModeEnabled = false;
 		this.arcadeModeEnabled = false;
 		this.iCadeModeEnabled = false;
+		this.backEnabled = false;
 		
 		this.credits = 0;
 		this.nextState = noChangeState;
@@ -29,7 +30,7 @@ var FlynnMcp = Class.extend({
 		this.devLowFpsPaceFactor = 0;
 		this.devLowFpsFrameCount = 0;
 
-		this.version = 'v1.0';  // Flynn version
+		this.version = 'v1.1';  // Flynn version
 
 		this.stateBuilderFunc = null;
 		this.resizeFunc = null;
@@ -67,6 +68,11 @@ var FlynnMcp = Class.extend({
             this.arcadeModeEnabled = true; // iCade mode forces arcade mode
         }
 
+        // Detect back enable from URL arguments ("?back")
+        if(flynnGetUrlFlag("back")){
+            this.backEnabled = true;
+        }
+
 		//--------------------------
 		// Browser/platform support
 		//--------------------------
@@ -88,13 +94,13 @@ var FlynnMcp = Class.extend({
 
 		if (this.developerModeEnabled){
 			console.log('DEV: title=' + document.title);
-			console.log('DEV: browserSupportsPeformance=', this.browserSupportsPerformance);
-			console.log('DEV: browserIsIos=', this.browserIsIos);
-			console.log('DEV: browserSupportsTouch=', this.browserSupportsTouch);
+			console.log('DEV: browserSupportsPeformance=' + this.browserSupportsPerformance);
+			console.log('DEV: browserIsIos=' + this.browserIsIos);
+			console.log('DEV: browserSupportsTouch=' + this.browserSupportsTouch);
 			console.log('DEV: Cookies: enabled=' + Cookies.enabled);
 			console.log('DEV: arcadeModeEnabled=' + this.arcadeModeEnabled);
 			console.log('DEV: iCadeModeEnabled=' + this.iCadeModeEnabled);
-
+			console.log('DEV: backEnabled=' + this.backEnabled);
 		}
 
 		// Set Vector mode

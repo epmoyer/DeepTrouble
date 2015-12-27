@@ -68,6 +68,10 @@ var StateMenu = FlynnState.extend({
         if (input.virtualButtonIsPressed("UI_escape")) {
             this.mcp.nextState = States.CONFIG;
         }
+
+        if (input.virtualButtonIsPressed("UI_exit") && this.mcp.backEnabled){
+            window.history.back();
+        }
 	},
 
 	update: function(paceFactor) {
@@ -137,6 +141,11 @@ var StateMenu = FlynnState.extend({
 
 		ctx.vectorText("WRITTEN BY ERIC MOYER (FIENDFODDER)", 1.5, null, 700, null, FlynnColors.DODGERBLUE);
         ctx.vectorText('PRESS <ESCAPE> TO CONFIGURE CONTROLS', 1.5, null, 715, null, FlynnColors.DODGERBLUE);
+        if(this.mcp.backEnabled){
+            ctx.vectorText('PRESS <TAB> TO EXIT GAME', 1.5, null, 730, null, FlynnColors.DODGERBLUE);
+        }
+
+        ctx.vectorText('FLYNN ' + this.mcp.version, 1.0, 3, 768-10, null, FlynnColors.GRAY);
 
         this.controlsMenu.render();
 	}

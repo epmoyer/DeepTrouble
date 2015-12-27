@@ -47,6 +47,7 @@ var FlynnInputHandler = Class.extend({
 		this.addUiButton('UI_down',   FlynnKeyboardMap['down']);
 		this.addUiButton('UI_right',  FlynnKeyboardMap['right']);
 		this.addUiButton('UI_left',   FlynnKeyboardMap['left']);
+		this.addUiButton('UI_exit',	  FlynnKeyboardMap['tab']);
 
 		// iCade button mapping
 		this.iCade = {
@@ -71,7 +72,7 @@ var FlynnInputHandler = Class.extend({
 
 		var self = this;
 		this.keyDownHandler = function(evt){
-			console.log("KeyDown: Code:" + evt.keyCode);
+			//console.log("KeyDown: Code:" + evt.keyCode);
 			if(self.iCadeModeEnabled){
 				var index = self.iCade.keyDownCodes.indexOf(evt.keyCode);
 				if(index > -1){
@@ -103,7 +104,7 @@ var FlynnInputHandler = Class.extend({
 		document.addEventListener("keydown", this.keyDownHandler);
 
 		this.keyUpHandler = function(evt){
-			console.log("KeyUp: Code:" + evt.keyCode);
+			//console.log("KeyUp: Code:" + evt.keyCode);
 			var name;
 			if(self.iCadeModeEnabled){
 				var index = self.iCade.keyUpCodes.indexOf(evt.keyCode);

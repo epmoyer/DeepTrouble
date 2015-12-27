@@ -63,7 +63,7 @@ var Game = Class.extend({
         // Setup inputs
         console.log("FNORD!");
         if(!this.mcp.iCadeModeEnabled){
-			//this.input.addVirtualButton('P1 left',  FlynnKeyboardMap['z'], FlynnConfigurable);
+			this.input.addVirtualButton('P1 left',  FlynnKeyboardMap['z'], FlynnConfigurable);
 			this.input.addVirtualButton('P1 right', FlynnKeyboardMap['x'], FlynnConfigurable);
 			this.input.addVirtualButton('P2 left',  FlynnKeyboardMap['n'], FlynnConfigurable);
 			this.input.addVirtualButton('P2 right', FlynnKeyboardMap['m'], FlynnConfigurable);
