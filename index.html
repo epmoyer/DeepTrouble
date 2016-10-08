@@ -1,67 +1,67 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
-	<!-- <meta name="apple-mobile-web-app-status-bar-style" content="black" /> -->
-	<!-- <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/> -->
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Deep Trouble</title>
+    <meta charset="UTF-8">
+    <!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
+    <!-- <meta name="apple-mobile-web-app-status-bar-style" content="black" /> -->
+    <!-- <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deep Trouble</title>
 
-	<!-- Stylesheets -->
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="apple-touch-icon" href="exhaustIcon76x76.png">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="apple-touch-icon" href="exhaustIcon76x76.png">
 
-	<!-- Lib files -->
-	<script src="js/lib/class.js"></script>
-	<script src="js/lib/seedrandom.js"></script>
-	<script src="js/lib/howlerbeta/howler.min.js"></script>
-	<script src="js/lib/victor/victor.js"></script>
-	<script src="js/lib/cookies/cookies.js"></script>
-		<!-- Flynn vector game framework -->
+    <!-- Lib files -->
+    <script src="js/lib/class.js"></script>
+    <script src="js/lib/seedrandom.js"></script>
+    <script src="js/lib/howlerbeta/howler.min.js"></script>
+    <script src="js/lib/victor/victor.js"></script>
+    <script src="js/lib/cookies/cookies.js"></script>
+        <!-- Flynn vector game framework -->
+        <script src="js/lib/flynn/flynnMain.js"></script>
         <script src="js/lib/flynn/flynnUtil.js"></script>
         <script src="js/lib/flynn/flynnTimers.js"></script>
-		<script src="js/lib/flynn/flynnResources.js"></script>
-		<script src="js/lib/flynn/flynnCanvas.js"></script>	
-		<script src="js/lib/flynn/flynnInput.js"></script>
-		<script src="js/lib/flynn/flynnPolygon.js"></script>
-		<script src="js/lib/flynn/flynnState.js"></script>
-		<script src="js/lib/flynn/flynnStateEnd.js"></script>
-		<script src="js/lib/flynn/flynnStateConfig.js"></script>
-		<script src="js/lib/flynn/flynnProjectiles.js"></script>
-		<script src="js/lib/flynn/flynnOptionManager.js"></script>
-		<script src="js/lib/flynn/flynnMcp.js"></script>
-		<script src="js/lib/flynn/flynnLeaderboard.js"></script>
+        <script src="js/lib/flynn/flynnCanvas.js"></script> 
+        <script src="js/lib/flynn/flynnInput.js"></script>
+        <script src="js/lib/flynn/flynnPolygon.js"></script>
+        <script src="js/lib/flynn/flynnState.js"></script>
+        <script src="js/lib/flynn/flynnStateEnd.js"></script>
+        <script src="js/lib/flynn/flynnStateConfig.js"></script>
+        <script src="js/lib/flynn/flynnProjectiles.js"></script>
+        <script src="js/lib/flynn/flynnOptionManager.js"></script>
+        <script src="js/lib/flynn/flynnMcp.js"></script>
+        <script src="js/lib/flynn/flynnLeaderboard.js"></script>
 
-	<!-- Before states -->
-	<script src="js/points.js"></script>
-	<script src="js/ship.js"></script>
+    <!-- Before states -->
+    <script src="js/points.js"></script>
+    <script src="js/ship.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/two_button.js"></script>
     <script src="js/controls_menu.js"></script>
 
-	<!-- States -->
-	<script src="js/stateGame.js"></script>
-	<script src="js/stateMenu.js"></script>
-	<!-- <script src="js/stateEnd.js"></script> -->
-<!-- 	// <script src="js/stateConfig.js"></script> -->
+    <!-- States -->
+    <script src="js/stateGame.js"></script>
+    <script src="js/stateMenu.js"></script>
+    <!-- <script src="js/stateEnd.js"></script> -->
+<!--    // <script src="js/stateConfig.js"></script> -->
 
 
-	<!-- Main file -->
-	<script src="js/main.js"></script>
+    <!-- Main file -->
+    <script src="js/main.js"></script>
 </head>
 <body bgcolor="#080808">
-	<!-- <div id="gameContainer"> -->
-		<canvas class="canvas" id="gameCanvas"></canvas>
-	<!-- </div> -->
+    <!-- <div id="gameContainer"> -->
+        <canvas class="canvas" id="gameCanvas"></canvas>
+    <!-- </div> -->
 
-	<input type="text" id="namefield">
-	<div style="background-color:#080808;position:absolute;top:0;width:200px;height:50px;"></div>
-	
-	<script>
-		var game = new Game();
-		game.run();
-	</script>
+    <input type="text" id="namefield">
+    <div style="background-color:#080808;position:absolute;top:0;width:200px;height:50px;"></div>
+    
+    <script>
+        Game.main = new Game.Main();  // entry point in main.js
+        Game.main.run();
+    </script>
 
 </body>
 </html>

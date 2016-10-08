@@ -1,11 +1,14 @@
-var ControlsMenu = Class.extend({
-    init: function(ctx, position_v, scale, color){
-        this.ctx = ctx;
-        this.position_v = position_v;
+if (typeof Game == "undefined") {
+   var Game = {};  // Create namespace
+}
+
+Game.ControlsMenu = Class.extend({
+    init: function(position, scale, color){
+        this.position = position; // {x:<x>, y:<y>}
         this.scale = scale;
         this.color = color;
 
-        this.textX = position_v.x + scale*8*FlynnCharacterSpacing;
+        this.textX = position.x + scale*8*Flynn.Font.Normal.CharacterSpacing;
         this.figLeftX = this.textX + scale*10;
         this.figBoxWidth = 7 * scale;
         this.figBoxHeight = 9 * scale;
@@ -13,33 +16,33 @@ var ControlsMenu = Class.extend({
         this.itemGap = 4*scale;
     },
 
-    render: function(){
+    render: function(ctx){
         this.masterStart();
         
-        this.title("Ascend");
-        this.box('L', 1);
-        this.box('R', 1);
+        this.title(ctx, "Ascend");
+        this.box(ctx, 'L', 1);
+        this.box(ctx, 'R', 1);
         this.next();
 
-        this.title("Descend");
-        this.box('L', 3);
-        this.box('R', 3);
+        this.title(ctx, "Descend");
+        this.box(ctx, 'L', 3);
+        this.box(ctx, 'R', 3);
         this.next();
 
         this.setMirror(true);
-        this.title("Move");
-        this.box('L', 1);
+        this.title(ctx, "Move");
+        this.box(ctx, 'L', 1);
         this.next();
 
-        this.title("Fire");
-        this.box('L', 3);
+        this.title(ctx, "Fire");
+        this.box(ctx, 'L', 3);
         this.advance(1);
-        this.box('R',1);
+        this.box(ctx, 'R',1);
         this.next();
     },
 
     masterStart: function(){
-        this.offsetY = this.position_v.y;
+        this.offsetY = this.position.y;
         this.setMirror(false);
         this.itemStart();
     },
@@ -53,22 +56,22 @@ var ControlsMenu = Class.extend({
         this.mirror = mirror;
     },
 
-    title: function(titleText){
-        this.ctx.vectorText(titleText + ':', this.scale, this.textX, this.offsetY, 0, this.color);
+    title: function(ctx, titleText){
+        ctx.vectorText(titleText + ':', this.scale, this.textX, this.offsetY, 'right', this.color);
     },
 
-    box: function(type, length){
+    box: function(ctx, type, length){
         this.longestBox = Math.max(this.longestBox, this.currentBoxLevel + length);
         var x = type == 'L' ? this.figLeftX : this.figLeftX + this.figBoxWidth;
         var y = this.offsetY-3 + this.figBoxHeight * this.currentBoxLevel;
-        this.ctx.vectorRect(x-3, y, this.figBoxWidth, length*this.figBoxHeight, this.color);
-        this.ctx.vectorText(type, this.scale, x, y+3, null, this.color);
+        ctx.vectorRect(x-3, y, this.figBoxWidth, length*this.figBoxHeight, this.color);
+        ctx.vectorText(type, this.scale, x, y+3, 'left', this.color);
 
         if(this.mirror){
             type = type == 'L' ? 'R' : 'L';
             x = type == 'L' ? this.figRightX : this.figRightX + this.figBoxWidth;
-            this.ctx.vectorRect(x-3, y, this.figBoxWidth, length*this.figBoxHeight, this.color);
-            this.ctx.vectorText(type, this.scale, x, y+3, null, this.color);
+            ctx.vectorRect(x-3, y, this.figBoxWidth, length*this.figBoxHeight, this.color);
+            ctx.vectorText(type, this.scale, x, y+3, 'left', this.color);
         }
     },
 

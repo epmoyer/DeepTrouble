@@ -1,4 +1,8 @@
-var ButtonEvent = {
+if (typeof Game == "undefined") {
+   var Game = {};  // Create namespace
+}
+
+Game.ButtonEvent = {
     TapLeft: 1,
     TapRight: 2,
     DoubleTap: 3,
@@ -15,7 +19,7 @@ var ButtonEvent = {
     HoldTapRight: 14,
 };
 
-var ButtonStates = {
+Game.ButtonStates = {
     IDLE: 0,
     L: 1,
     R: 2,
@@ -28,15 +32,15 @@ var ButtonStates = {
     LR_CANCELING: 9,
 };
 
-var TimeDebounceSec = 4/60.0;
-var TimeDoubleHoldSec = 8/60.0;
+Game.TwoButton = Class.extend({
 
-var TwoButton = Class.extend({
+    TIME_DEBOUNCE_SEC:    4/60.0,
+    TIME_DOUBLE_HOLD_SEC: 8/60.0,
     
     init: function(leftButtonName, rightButtonName) {
         this.leftButtonName = leftButtonName;
         this.rightButtonName = rightButtonName;
-        this.bState = ButtonStates.IDLE;
+        this.bState = Game.ButtonStates.IDLE;
         this.bStableTimeSec = 0;
         this.bStateHoldTimeSec = 0;
         this.bLeftPrevious = false;
@@ -54,7 +58,7 @@ var TwoButton = Class.extend({
         bStable = false;
         if (bLeft == this.bLeftPrevious && bRight == this.bRightPrevious){
             this.bStableTimeSec += paceFactor/60.0;
-            if (this.bStableTimeSec >= TimeDebounceSec){
+            if (this.bStableTimeSec >= this.TIME_DEBOUNCE_SEC){
                 bStable = true;
             } 
         } else{
@@ -62,104 +66,104 @@ var TwoButton = Class.extend({
         }
         
         switch(this.bState){
-            case ButtonStates.IDLE:
-                if (bLeft && bRight) this.bState = ButtonStates.LR;
-                else if (bLeft && bStable) this.bState = ButtonStates.L;
-                else if (bRight && bStable) this.bState = ButtonStates.R;
+            case Game.ButtonStates.IDLE:
+                if (bLeft && bRight) this.bState = Game.ButtonStates.LR;
+                else if (bLeft && bStable) this.bState = Game.ButtonStates.L;
+                else if (bRight && bStable) this.bState = Game.ButtonStates.R;
                 // Support rapid TapLeft and TapRight events (i.e. without meeting bStable timeout)
-                else if (!bLeft && this.bLeftPrevious) bEvent = ButtonEvent.TapLeft;
-                else if (!bRight && this.bRightPrevious) bEvent = ButtonEvent.TapRight;
+                else if (!bLeft && this.bLeftPrevious) bEvent = Game.ButtonEvent.TapLeft;
+                else if (!bRight && this.bRightPrevious) bEvent = Game.ButtonEvent.TapRight;
                 break;
 
-            case ButtonStates.L:
+            case Game.ButtonStates.L:
                 if (!bLeft){
-                    this.bState  = ButtonStates.IDLE;
-                    bEvent = ButtonEvent.TapLeft;
+                    this.bState  = Game.ButtonStates.IDLE;
+                    bEvent = Game.ButtonEvent.TapLeft;
                 }
                 else if (bRight){
-                    this.bState = ButtonStates.L_R;
+                    this.bState = Game.ButtonStates.L_R;
                 }
                 break;
 
-            case ButtonStates.L_R:
+            case Game.ButtonStates.L_R:
                 if (bLeft && !bRight && bStable){
-                    this.bState  = ButtonStates.L_R_L;
-                    bEvent = ButtonEvent.HoldTapLeft;
+                    this.bState  = Game.ButtonStates.L_R_L;
+                    bEvent = Game.ButtonEvent.HoldTapLeft;
                 }
                 else if (!bLeft && !bRight && bStable){
-                    this.bState = ButtonStates.IDLE;
+                    this.bState = Game.ButtonStates.IDLE;
                 }
                 break;
 
-            case ButtonStates.L_R_L:
+            case Game.ButtonStates.L_R_L:
                 if (bLeft && bRight && bStable){
                     // Allow "TapRight" Chaining
-                    this.bState  = ButtonStates.L_R;
+                    this.bState  = Game.ButtonStates.L_R;
                 }
                 if (!bLeft && !bRight && bStable){
                     // Release
-                    this.bState  = ButtonStates.IDLE;
+                    this.bState  = Game.ButtonStates.IDLE;
                 }
                 break;
 
-            case ButtonStates.R:
+            case Game.ButtonStates.R:
                 if (!bRight){
-                    this.bState  = ButtonStates.IDLE;
-                    bEvent = ButtonEvent.TapRight;
+                    this.bState  = Game.ButtonStates.IDLE;
+                    bEvent = Game.ButtonEvent.TapRight;
                 }
                 else if (bLeft){
-                    this.bState = ButtonStates.R_L;
+                    this.bState = Game.ButtonStates.R_L;
                 }
                 break;
 
-            case ButtonStates.R_L:
+            case Game.ButtonStates.R_L:
                 if (!bLeft && bRight && bStable){
-                    this.bState  = ButtonStates.R_L_R;
-                    bEvent = ButtonEvent.HoldTapRight;
+                    this.bState  = Game.ButtonStates.R_L_R;
+                    bEvent = Game.ButtonEvent.HoldTapRight;
                 }
                 else if (!bLeft && !bRight && bStable){
-                    this.bState = ButtonStates.IDLE;
+                    this.bState = Game.ButtonStates.IDLE;
                 }
                 break;
 
-            case ButtonStates.R_L_R:
+            case Game.ButtonStates.R_L_R:
                 if (bLeft && bRight && bStable){
                     // Allow "TapLeft" Chaining
-                    this.bState  = ButtonStates.R_L;
+                    this.bState  = Game.ButtonStates.R_L;
                 }
                 if (!bLeft && !bRight && bStable){
                     // Release
-                    this.bState  = ButtonStates.IDLE;
+                    this.bState  = Game.ButtonStates.IDLE;
                 }
                 break;
 
-            case ButtonStates.LR:
+            case Game.ButtonStates.LR:
                 if (!bLeft && !bRight){
-                    this.bState  = ButtonStates.IDLE;
-                    bEvent = ButtonEvent.DoubleTap;
+                    this.bState  = Game.ButtonStates.IDLE;
+                    bEvent = Game.ButtonEvent.DoubleTap;
                 }
-                if(bLeft && bRight && (this.bStateHoldTimeSec >= TimeDoubleHoldSec)){
-                    this.bState = ButtonStates.LR_HOLD;
-                    bEvent = ButtonEvent.DoubleHold;
+                if(bLeft && bRight && (this.bStateHoldTimeSec >= this.TIME_DOUBLE_HOLD_SEC)){
+                    this.bState = Game.ButtonStates.LR_HOLD;
+                    bEvent = Game.ButtonEvent.DoubleHold;
                 }
                 break;
 
-            case ButtonStates.LR_HOLD:
+            case Game.ButtonStates.LR_HOLD:
                 if (!bLeft && !bRight){
-                    this.bState = ButtonStates.IDLE;
+                    this.bState = Game.ButtonStates.IDLE;
                 }
                 else if ((bLeft && !bRight) || (!bLeft && bRight)){
-                    this.bState = ButtonStates.LR_CANCELING;
+                    this.bState = Game.ButtonStates.LR_CANCELING;
                 }
                 else{
-                    bEvent = ButtonEvent.DoubleHold;
+                    bEvent = Game.ButtonEvent.DoubleHold;
                 }
 
                 break;
 
-            case ButtonStates.LR_CANCELING:
+            case Game.ButtonStates.LR_CANCELING:
                 if (!bLeft && !bRight){
-                    this.bState = ButtonStates.IDLE;
+                    this.bState = Game.ButtonStates.IDLE;
                 }
                 break;
 

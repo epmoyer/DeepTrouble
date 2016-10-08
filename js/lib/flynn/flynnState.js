@@ -1,10 +1,8 @@
-var FlynnState = Class.extend({
+Flynn.State = Class.extend({
 
-	init: function(mcp){
-		this.mcp = mcp;
-	},
-
-	handleInputs: function() {},
-	update: function() {},
-	render: function(ctx) {}
+    init: function(){
+    },
+    handleInputs: function() {},
+    update: function() {},
+    render: function(ctx) {}
 });
