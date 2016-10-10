@@ -1,6 +1,6 @@
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
+var Game = Game || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.VERSION = '0.2';
 Game.CANVAS_HEIGHT = 768;
@@ -18,7 +18,6 @@ Game.States = {
 Game.Main = Class.extend({
     
     init: function() {
-        "use strict";
 
         var self = this;
 
@@ -58,7 +57,7 @@ Game.Main = Class.extend({
         if (typeof Game.config == "undefined") {
            Game.config = {};  // Create config object
         }
-        Game.config.score = 0;
+        Game.config.score = [0, 0];
         Game.config.leaderboard = new Flynn.Leaderboard(
             ['name', 'score'],  // attributeList
             6,                  // maxItems
@@ -127,3 +126,5 @@ Game.Main = Class.extend({
         Flynn.mcp.run();
     }
 });
+
+}()); // "use strict" wrapper

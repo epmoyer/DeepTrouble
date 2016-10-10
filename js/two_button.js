@@ -1,6 +1,6 @@
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
+var Game = Game || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.ButtonEvent = {
     TapLeft: 1,
@@ -49,13 +49,13 @@ Game.TwoButton = Class.extend({
 
     update: function(input, paceFactor){
 
-        bStatePrevious = this.bState;
+        var bStatePrevious = this.bState;
         this.bStateHoldTime += paceFactor/60.0;
 
-        bEvent = null; 
-        bLeft = input.virtualButtonIsDown(this.leftButtonName);
-        bRight = input.virtualButtonIsDown(this.rightButtonName);
-        bStable = false;
+        var bEvent = null; 
+        var bLeft = input.virtualButtonIsDown(this.leftButtonName);
+        var bRight = input.virtualButtonIsDown(this.rightButtonName);
+        var bStable = false;
         if (bLeft == this.bLeftPrevious && bRight == this.bRightPrevious){
             this.bStableTimeSec += paceFactor/60.0;
             if (this.bStableTimeSec >= this.TIME_DEBOUNCE_SEC){
@@ -179,5 +179,6 @@ Game.TwoButton = Class.extend({
         this.bRightPrevious = bRight;
         return(bEvent);
     },
-
 });
+
+}()); // "use strict" wrapper

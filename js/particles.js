@@ -1,6 +1,6 @@
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
+var Game = Game || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.ParticleTypes = {
     DEBRIS:    1,
@@ -67,7 +67,7 @@ Game.Particle = Class.extend({
             //ctx.fillStyle=FlynnColors.RED;
             var brightness = 128 * (this.life / this.BUBBLE_LIFE);
             brightness = Math.max(Math.floor(brightness), 0);
-            dim_brightness = Math.max(brightness - 20, 0);
+            var dim_brightness = Math.max(brightness - 20, 0);
             ctx.fillStyle = Flynn.Util.rgbToHex(dim_brightness, dim_brightness, brightness);
         }
         //console.log(this.x, this.y);
@@ -165,3 +165,5 @@ Game.Particles = Class.extend({
         }
     }
 });
+
+}()); // "use strict" wrapper

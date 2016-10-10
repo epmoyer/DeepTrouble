@@ -2,12 +2,10 @@
 // StateMenu class
 //    Startup screen
 //--------------------------------------------
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
-if (typeof Game.config == "undefined") {
-   Game.config = {};  // Create namespace
-}
+var Game    = Game        || {}; // Create namespace
+Game.config = Game.config || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.config.SONAR_PING_INTERVAL_SEC = 5.0;
 
@@ -147,5 +145,6 @@ Game.StateMenu = Flynn.State.extend({
 
         this.controlsMenu.render(ctx);
     }
-
 });
+
+}()); // "use strict" wrapper

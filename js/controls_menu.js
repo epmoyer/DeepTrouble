@@ -1,6 +1,6 @@
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
+var Game = Game || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.ControlsMenu = Class.extend({
     init: function(position, scale, color){
@@ -83,5 +83,6 @@ Game.ControlsMenu = Class.extend({
         this.offsetY += this.longestBox*this.figBoxHeight + this.itemGap;
         this.itemStart();
     }
-
 });
+
+}()); // "use strict" wrapper

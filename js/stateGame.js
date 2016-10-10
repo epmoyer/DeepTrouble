@@ -2,9 +2,9 @@
 // StateGame class
 //    Core gameplay
 //--------------------------------------------
-if (typeof Game == "undefined") {
-   var Game = {};  // Create namespace
-}
+var Game = Game || {}; // Create namespace
+
+(function () { "use strict";
 
 Game.StateGame = Flynn.State.extend({
 
@@ -65,8 +65,7 @@ Game.StateGame = Flynn.State.extend({
         this.lifepolygon.setScale(1.2);
         this.lifepolygon.setAngle(0);
 
-        this.score = 0;
-        this.highscore = Flynn.mcp.highscores[0][1];
+        Game.config.score = [0, 0];
 
         this.particles = new Game.Particles(this);
         this.projectiles = new Flynn.Projectiles(
@@ -131,18 +130,18 @@ Game.StateGame = Flynn.State.extend({
         // Points only count when not visible, unless unconditional
         // Unconditional is used for bonuses,etc. Which may be applied when not visible.
         if(this.ships[player_index].visible || unconditional){
-            if(Math.floor(this.score / ExtraLifeScore) !== Math.floor((this.score + points) / ExtraLifeScore)){
-                // Extra life
-                this.lives++;
-                this.soundExtraLife.play();
-            }
-            this.score += points;
+            // if(Math.floor(Game.config.score / ExtraLifeScore) !== Math.floor((Game.config.score + points) / ExtraLifeScore)){
+            //     // Extra life
+            //     this.lives++;
+            //     this.soundExtraLife.play();
+            // }
+            Game.config.score[player_index] += points;
         }
 
         // Update highscore if exceeded
-        if (this.score > this.highscore){
-            this.highscore = this.score;
-        }
+        // if (Game.config.score > this.highscore){
+        //     this.highscore = Game.config.score;
+        // }
     },
 
     showPopUp: function(pop_up_text, pop_up_text2){
@@ -241,13 +240,13 @@ Game.StateGame = Flynn.State.extend({
         //      if (this.gameOver){
         //          if(Flynn.mcp.browserSupportsTouch){
         //              // On touch devices just update high score and go back to menu
-        //              Flynn.mcp.updateHighScores("NONAME", this.score);
+        //              Flynn.mcp.updateHighScores("NONAME", Game.config.score);
 
         //              Flynn.mcp.changnStae(States.MENU);
         //          } else {
         //              Flynn.mcp.changnStae(States.END);
         //          }
-        //          Game.config.score = this.score;
+        //          Game.config.score = Game.config.score;
         //          return;
         //      }
         //  }
@@ -509,7 +508,7 @@ Game.StateGame = Flynn.State.extend({
 
 
         // Scores
-        //ctx.vectorText(this.score, 3, 15, 15, null, Flynn.Colors.GREEN);
+        //ctx.vectorText(Game.config.score, 3, 15, 15, null, Flynn.Colors.GREEN);
         //ctx.vectorText(this.highscore, 3, Game.CANVAS_WIDTH - 6    , 15, 0 , Flynn.Colors.GREEN);
 
         // Remaining Lives
@@ -534,3 +533,5 @@ Game.StateGame = Flynn.State.extend({
         }
     }
 });
+
+}()); // "use strict" wrapper
