@@ -1,0 +1,7 @@
+.DS_Store
+.dropbox
+js/_trash
+js/lib/flynn/diff.sh
+js/lib/flynn/pull.sh
+js/lib/flynn/push.sh
+scrapbook
