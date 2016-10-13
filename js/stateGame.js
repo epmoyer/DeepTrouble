@@ -73,28 +73,7 @@ Game.StateGame = Flynn.State.extend({
             false // is_world
             );
 
-        this.soundSonarPing = new Howl({
-            src: ['sounds/sonar_ping.mp3'],
-            volume: 0.3
-        });
-        this.soundSideThrust = new Howl({
-            src: ['sounds/bubbles_low.mp3'],
-            volume: 0.5,
-            loop: true
-        });
-        this.soundAscentThrust = new Howl({
-            src: ['sounds/bubbles_high.mp3'],
-            volume: 0.5
-        });
-        this.soundDescentThrust = new Howl({
-            src: ['sounds/bubbles_fast.mp3'],
-            volume: 0.5,
-            loop: true
-        });
-        this.soundTorpedo = new Howl({
-            src: ['sounds/torpedo.mp3'],
-            volume: 0.5
-        });
+
         this.playingSoundSideThrust = false;
         this.playingSoundAscentThrust = false;
         this.playingSoundDescentThrust = false;
@@ -133,7 +112,7 @@ Game.StateGame = Flynn.State.extend({
             // if(Math.floor(Game.config.score / ExtraLifeScore) !== Math.floor((Game.config.score + points) / ExtraLifeScore)){
             //     // Extra life
             //     this.lives++;
-            //     this.soundExtraLife.play();
+            //     Game.sounds.extra_life.play();
             // }
             Game.config.score[player_index] += points;
         }
@@ -178,7 +157,7 @@ Game.StateGame = Flynn.State.extend({
 
         // Sounds
         this.engine_sound.stop();
-        this.soundPlayerDie.play();
+        Game.sounds.player_die.play();
 
         // Explosion
         this.particles.explosion(
@@ -259,7 +238,7 @@ Game.StateGame = Flynn.State.extend({
 
             switch(bEvent){
                 case Game.ButtonEvent.HoldTapLeft:
-                    this.soundTorpedo.play();
+                    Game.sounds.torpedo.play();
                     this.projectiles.add(
                         {  x: this.ships[player_index].position.x - this.SHIP_WIDTH/2,
                            y: this.ships[player_index].position.y
@@ -271,7 +250,7 @@ Game.StateGame = Flynn.State.extend({
                         );
                     break;
                 case Game.ButtonEvent.HoldTapRight:
-                    this.soundTorpedo.play();
+                    Game.sounds.torpedo.play();
                     this.projectiles.add(
                         {  x: this.ships[player_index].position.x + this.SHIP_WIDTH/2,
                            y: this.ships[player_index].position.y
@@ -284,9 +263,8 @@ Game.StateGame = Flynn.State.extend({
                     break;
                 case Game.ButtonEvent.DoubleTap:
                     Flynn.mcp.timers.set('soundAscentThrust', this.SOUND_ASCENT_THRUST_TICKS);
-                    if(!this.playingSoundAscentThrust){
-                        this.soundAscentThrust.play();
-                        this.playingSoundAscentThrust = true;
+                    if(!Game.sounds.ascent_thrust.playing()){
+                        Game.sounds.ascent_thrust.play();
                     }
                     this.ships[player_index].vel.y += this.SHIP_THRUST_UP_VELOCITY;
                     this.particles.exhaust(
@@ -303,9 +281,8 @@ Game.StateGame = Flynn.State.extend({
                     break;
                 case Game.ButtonEvent.TapLeft:
                     Flynn.mcp.timers.set('soundSideThrust', this.SOUND_SIDE_THRUST_TICKS);
-                    if(!this.playingSoundSideThrust){
-                        this.soundSideThrust.play();
-                        this.playingSoundSideThrust = true;
+                    if(!Game.sounds.side_thrust.playing()){
+                        Game.sounds.side_thrust.play();
                     }
                     this.ships[player_index].vel.x -= this.SHIP_THRUST_SIDE_VELOCITY;
                     this.particles.exhaust(
@@ -322,9 +299,8 @@ Game.StateGame = Flynn.State.extend({
                     break;
                 case Game.ButtonEvent.TapRight:
                     Flynn.mcp.timers.set('soundSideThrust', this.SOUND_SIDE_THRUST_TICKS);
-                    if(!this.playingSoundSideThrust){
-                        this.soundSideThrust.play();
-                        this.playingSoundSideThrust = true;
+                    if(!Game.sounds.side_thrust.playing()){
+                        Game.sounds.side_thrust.play();
                     }
                     this.ships[player_index].vel.x += this.SHIP_THRUST_SIDE_VELOCITY;
                     this.particles.exhaust(
@@ -341,9 +317,8 @@ Game.StateGame = Flynn.State.extend({
                     break;
                 case Game.ButtonEvent.DoubleHold:
                     Flynn.mcp.timers.set('soundDescentThrust', this.SOUND_DESCENT_THRUST_TICKS);
-                    if (!this.playingSoundDescentThrust) {
-                        this.soundDescentThrust.play();
-                        this.playingSoundDescentThrust = true;
+                    if (!Game.sounds.descent_thrust.playing()) {
+                        Game.sounds.descent_thrust.play();
                     }
                     this.ships[player_index].vel.y += this.SHIP_THRUST_DIVE_VELOCITY;
                     var openingWidth = 25;
@@ -359,24 +334,16 @@ Game.StateGame = Flynn.State.extend({
                         pace_factor
                     );
                     break;
-                default:
-                    if(this.playingsoundD){
-                        this.playingsoundD = false;
-                        this.soundD.stop();
-                    }
             }
 
-            if(!Flynn.mcp.timers.isRunning('soundSideThrust') && this.playingSoundSideThrust){
-                this.soundSideThrust.stop();
-                this.playingSoundSideThrust = false;
+            if(!Flynn.mcp.timers.isRunning('soundSideThrust') && Game.sounds.side_thrust.playing()){
+                Game.sounds.side_thrust.stop();
             }
-            if(!Flynn.mcp.timers.isRunning('soundAscentThrust') && this.playingSoundAscentThrust){
-                this.soundAscentThrust.stop();
-                this.playingSoundAscentThrust = false;
+            if(!Flynn.mcp.timers.isRunning('soundAscentThrust') && Game.sounds.ascent_thrust.playing()){
+                Game.sounds.ascent_thrust.stop();
             }
-            if(!Flynn.mcp.timers.isRunning('soundDescentThrust') && this.playingSoundDescentThrust){
-                this.soundDescentThrust.stop();
-                this.playingSoundDescentThrust = false;
+            if(!Flynn.mcp.timers.isRunning('soundDescentThrust') && Game.sounds.descent_thrust.playing()){
+                Game.sounds.descent_thrust.stop();
             }
         }
     },
@@ -389,7 +356,7 @@ Game.StateGame = Flynn.State.extend({
         this.sonar_timer -= (1/60.0) * pace_factor;
         if (this.sonar_timer<0 && Flynn.mcp.optionManager.getOption('musicEnabled')){
             this.sonar_timer = Game.config.SONAR_PING_INTERVAL_SEC;
-            this.soundSonarPing.play();
+            Game.sounds.sonar_ping.play();
         }
 
         for(var player_index=0; player_index<this.NUM_PLAYERS; ++player_index){
@@ -407,7 +374,7 @@ Game.StateGame = Flynn.State.extend({
                     if(Flynn.mcp.timers.hasExpired('shipRespawnDelay')){
                         // Start the respawn animation timer (which also triggers the animation)
                         Flynn.mcp.timers.set('shipRespawnAnimation', this.SHIP_RESPAWN_ANIMATION_TICKS);
-                        this.soundShipRespawn.play();
+                        Game.sounds.ship_respawn.play();
                     }
                     if(Flynn.mcp.timers.hasExpired('shipRespawnAnimation')){
                         // Respawn the ship

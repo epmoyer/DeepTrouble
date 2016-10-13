@@ -12,20 +12,6 @@ Game.config.SONAR_PING_INTERVAL_SEC = 5.0;
 Game.StateMenu = Flynn.State.extend({
 
     init: function(){
-        this.soundStart = new Howl({
-            src: ['sounds/Tripple_blip.ogg','sounds/Tripple_blip.mp3'],
-            volume: 0.5
-        });
-
-        this.soundInsertCoin = new Howl({
-            src: ['sounds/bubble_single.mp3'],
-            volume: 1.0
-        });
-
-        this.soundSonarPing = new Howl({
-            src: ['sounds/sonar_ping.mp3'],
-            volume: 0.3
-        });
 
         this.sonar_timer = 1.0;
 
@@ -55,7 +41,7 @@ Game.StateMenu = Flynn.State.extend({
         if(Flynn.mcp.arcadeModeEnabled) {
             if (input.virtualButtonWasPressed("UI_quarter")) {
                 Flynn.mcp.credits += 1;
-                this.soundInsertCoin.play();
+                Game.sounds.insert_coin.play();
             }
         }
 
@@ -66,7 +52,7 @@ Game.StateMenu = Flynn.State.extend({
         {
             Flynn.mcp.credits -= 1;
             Flynn.mcp.changeState(Game.States.GAME);
-            this.soundStart.play();
+            Game.sounds.start_game.play();
         }
 
         if (input.virtualButtonWasPressed("UI_escape")) {
@@ -82,7 +68,7 @@ Game.StateMenu = Flynn.State.extend({
         this.sonar_timer -= (1/60.0) * pace_factor;
         if (this.sonar_timer<0 && Flynn.mcp.optionManager.getOption('musicEnabled')){
             this.sonar_timer = Game.config.SONAR_PING_INTERVAL_SEC;
-            this.soundSonarPing.play();
+            Game.sounds.sonar_ping.play();
         }
     },
 

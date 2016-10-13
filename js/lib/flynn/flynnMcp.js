@@ -1,8 +1,10 @@
 // Master Control Program 
+
+(function () { "use strict"; 
+
 Flynn.Mcp = Class.extend({
 
     init: function(canvasWidth, canvasHeight, noChangeState, gameSpeedFactor, stateBuilderFunc) {
-        "use strict";
 
         Flynn.mcp = this;
 
@@ -20,6 +22,8 @@ Flynn.Mcp = Class.extend({
         this.mousetouchEnabled = Flynn.Util.getUrlFlag("mousetouch");
         
         this.halted = false;
+        this.audio_mute_enabled = false;
+
         this.credits = 0;
         this.next_state_id = noChangeState;
         this.current_state_id = null;
@@ -43,11 +47,6 @@ Flynn.Mcp = Class.extend({
         this.optionManager = new Flynn.OptionManager(this);
 
         this.custom={}; // Container for custom game data which needs to be exchanged globally.
-
-        // Highscores
-        this.highscores = [
-            ["No Name", 100],
-        ];
 
         this.canvas = new Flynn.Canvas(canvasWidth, canvasHeight);
         this.input = new Flynn.InputHandler();
@@ -171,6 +170,11 @@ Flynn.Mcp = Class.extend({
         this.next_state_id = next_state_id;
     },
 
+    muteAudio(mute_enable){
+        this.audio_mute_enabled = mute_enable;
+        Howler.mute(mute_enable);
+    },
+
     devHalt: function(){
         var ctx = this.canvas.ctx;
         var box_height = 60;
@@ -185,12 +189,17 @@ Flynn.Mcp = Class.extend({
             Flynn.Colors.CYAN,
             Flynn.Colors.BLACK);
         ctx.vectorText("MCP HALTED.  CLICK TO RESUME.", 4.0, null, null, null, Flynn.Colors.WHITE);
+
+        Howler.mute(true);
     },
 
     devResume: function(){
         this.halted = false;
         console.log('DEV: Execution resumed');
         this.run();
+
+        // Restore audio mute to its state before the halt
+        Howler.mute(this.audio_mute_enabled);
     },
 
     cycleDevPacingMode: function(){
@@ -224,27 +233,6 @@ Flynn.Mcp = Class.extend({
         }
     },
 
-    updateHighScores: function (nickName, score, descending){
-        "use strict";
-        descending = typeof descending !== 'undefined' ? descending : true;
-
-        this.highscores.push([nickName, score]);
-
-        // sort hiscore in ascending order
-        if (descending){
-            this.highscores.sort(function(a, b) {
-                return b[1] - a[1];
-            });
-        } else {
-            this.highscores.sort(function(a, b) {
-                return a[1] - b[1];
-            });
-        }
-
-        // Drop the last
-        this.highscores.splice(this.highscores.length-1, 1);
-    },
-
     renderLogo(ctx, position){
         if(typeof position !== 'undefined'){
             this.flynn_logo.position = position;
@@ -261,7 +249,6 @@ Flynn.Mcp = Class.extend({
     },
 
     run: function(){
-        "use strict";
         var self = this;
 
         this.canvas.animate( function(paceFactor) {
@@ -343,3 +330,5 @@ Flynn.Mcp = Class.extend({
     },
 
 });
+
+}()); // "use strict" wrapper
