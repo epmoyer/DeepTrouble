@@ -4,7 +4,7 @@
 
 Flynn.Mcp = Class.extend({
 
-    init: function(canvasWidth, canvasHeight, noChangeState, gameSpeedFactor, stateBuilderFunc) {
+    init: function(canvasWidth, canvasHeight, noChangeState, gameSpeedFactor, stateBuilderFunc, hideCanvas, hideVectorModeOption) {
 
         Flynn.mcp = this;
 
@@ -13,7 +13,15 @@ Flynn.Mcp = Class.extend({
         this.noChangeState = noChangeState;
         this.gameSpeedFactor = gameSpeedFactor;
         this.stateBuilderFunc = stateBuilderFunc;
-
+        if(typeof(hideCanvas)==='undefined'){
+            this.hideCanvas = false;
+        }
+        else{
+            this.hideCanvas = hideCanvas;
+        }
+        if(typeof(hideVectorModeOption)==='undefined'){
+            hideVectorModeOption = false;
+        }
 
         this.developerModeEnabled = Flynn.Util.getUrlFlag("develop");
         this.arcadeModeEnabled = Flynn.Util.getUrlFlag("arcade");
@@ -33,8 +41,6 @@ Flynn.Mcp = Class.extend({
         this.devLowFpsPaceFactor = 0;
         this.devLowFpsFrameCount = 0;
 
-        this.version = 'v2.1';  // Flynn version
-
         this.viewport = {x:0, y:0};
 
         this.resizeFunc = null;
@@ -49,6 +55,7 @@ Flynn.Mcp = Class.extend({
         this.custom={}; // Container for custom game data which needs to be exchanged globally.
 
         this.canvas = new Flynn.Canvas(canvasWidth, canvasHeight);
+        this.touch_control_canvas = this.canvas;
         this.input = new Flynn.InputHandler();
 
         if(this.iCadeModeEnabled){
@@ -84,7 +91,7 @@ Flynn.Mcp = Class.extend({
 
         // SUPPORT: Touch
         this.browserSupportsTouch = (
-            ('ontouchstart' in document.documentElement) ||
+            (Flynn.Util.is_mobile_browser() && ('ontouchstart' in document.documentElement)) ||
             this.mousetouchEnabled );
 
         if (this.developerModeEnabled){
@@ -116,13 +123,15 @@ Flynn.Mcp = Class.extend({
                 vectorMode = Flynn.VectorMode.V_THIN;
             }
         }
-        this.optionManager.addOption('vectorMode', Flynn.OptionType.MULTI, vectorMode, vectorMode, 'VECTOR DISPLAY EMULATION',
-            [   ['NONE',     Flynn.VectorMode.PLAIN],
-                ['NORMAL',   Flynn.VectorMode.V_THIN],
-                ['THICK' ,   Flynn.VectorMode.V_THICK],
-                ['FLICKER' , Flynn.VectorMode.V_FLICKER]
-            ],
-            null);
+        if(!hideVectorModeOption){
+            this.optionManager.addOption('vectorMode', Flynn.OptionType.MULTI, vectorMode, vectorMode, 'VECTOR DISPLAY EMULATION',
+                [   ['NONE',     Flynn.VectorMode.PLAIN],
+                    ['NORMAL',   Flynn.VectorMode.V_THIN],
+                    ['THICK' ,   Flynn.VectorMode.V_THICK],
+                    ['FLICKER' , Flynn.VectorMode.V_FLICKER]
+                ],
+                null);
+        }
 
         //--------------------------
         // Resize handler
@@ -145,7 +154,9 @@ Flynn.Mcp = Class.extend({
             var left = Math.floor(viewport.width/2 - actualCanvasWidth/2);
 
             var element = document.getElementById("gameCanvas");
-            element.style.display = "block";
+            if(!self.hideCanvas){
+                element.style.display = "block";
+            }
             element.style.width = actualCanvasWidth + "px";
             element.style.height = actualCanvasHeight + "px";
             element.style.top = top + "px";
@@ -160,6 +171,13 @@ Flynn.Mcp = Class.extend({
             self.input.updateVisibilityAllControls();
         };
         window.addEventListener("resize", this.resize);
+    },
+
+    setTouchControlCanvas: function(canvas){
+        // Allows use of an alternate canvas for touch control rendering.
+        // This allows (for instance) a 3D game to create a special 2D canvas onto which touch
+        // controls will be drawn.
+        this.touch_control_canvas = canvas;
     },
 
     setResizeFunc: function(resizeFunc){
@@ -239,7 +257,7 @@ Flynn.Mcp = Class.extend({
         }
         this.flynn_logo.render(ctx);
         ctx.vectorText(
-            this.version,
+            Flynn.VERSION,
             1.5,
             this.flynn_logo.position.x,
             this.flynn_logo.position.y + 23,
@@ -316,8 +334,8 @@ Flynn.Mcp = Class.extend({
                     }
 
                     // Render any visible virtual controls
-                    self.input.renderTouchRegions(self.canvas.ctx);
-                    self.input.renderVirtualJoysticks(self.canvas.ctx);
+                    self.input.renderTouchRegions(self.touch_control_canvas.ctx);
+                    self.input.renderVirtualJoysticks(self.touch_control_canvas.ctx);
 
                     // Process halt
                     if(   self.developerModeEnabled 

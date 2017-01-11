@@ -1,25 +1,38 @@
 // flynnMain
 //------------
-// This must be the first flynn script loaded
+// This must be the first Flynn script loaded
 
 var Flynn = Flynn || {}; // Create namespace
 
 (function () { "use strict"; 
+
+Flynn.VERSION = "2.5.1";
  
 Flynn.init = function(
     canvasWidth,
     canvasHeight,
     noChangeState,
     gameSpeedFactor, 
-    stateBuilderFunc){
+    stateBuilderFunc,
+    hideCanvas,
+    hideVectorModeOption){
+
+    if(typeof(hideCanvas)==='undefined'){
+        hideCanvas= false;
+    }
+    if(typeof(hideVectorModeOption)==='undefined'){
+        hideVectorModeOption= false;
+    }
     
-    // The mcp will regester itself as Flynn.mcp when created
+    // The mcp will register itself as Flynn.mcp when created
     new Flynn.Mcp(
         canvasWidth,
         canvasHeight,
         noChangeState,
         gameSpeedFactor,
-        stateBuilderFunc);
+        stateBuilderFunc,
+        hideCanvas,
+        hideVectorModeOption);
 };
 
 Flynn.TICKS_PER_SECOND = 60;
@@ -115,30 +128,33 @@ Flynn.KeyboardMap = {
     'y':        89,
     'z':        90,
 
-    'single_quote':  222, // '
+    'semicolon':     186, // ;
+    'equals':        187, // =
     'comma':         188, // ,
     'dash':          189, // -
     'period':        190, // .
     'forward_slash': 191, // /
-    'semicolon':     186, // ;
-    'equals':        187, // =
+    'grave_accent':  192, // `
+    
     'left_bracket':  219, // [
     'backslash':     220, // \
     'right_bracket': 221, // ]
-    'grave_accent':  192, // `
+    'single_quote':  222, // '
 
-    'tab':      9,
-    'enter':    13,
-    'shift':    16,
-    'control':  17,
-    'option':   18,
-    'escape':   27,
-    'spacebar': 32,
-    'left':     37,
-    'up':       38,
-    'right':    39,
-    'down':     40,
-    'command':  91,
+    'delete':    8,
+    'tab':       9,
+    'enter':     13,
+    'shift':     16,
+    'control':   17,
+    'option':    18,
+    'escape':    27,
+    'spacebar':  32,
+    'left':      37,
+    'up':        38,
+    'right':     39,
+    'down':      40,
+    'l_command': 91,
+    'r_command': 93,
 
     'f1':       112,
     'f2':       113,
@@ -207,7 +223,7 @@ Flynn.Font.Normal = {
             [1,3,3,3],                                                           // -  
             [1.5,6,1.5,5,2.5,5,2.5,6,1.5,6],                                     // .  
             [1,6,3,0,1,6],                                                       // /  
-            [0,0,0,6,4,6,4,0,0,0],                                               // 0
+            [4,0,0,0,0,6,4,6,4,0,0,6],                                           // 0
             [2,0,2,6],                                                           // 1
             [0,0,4,0,4,3,0,3,0,6,4,6],                                           // 2
             [0,0,4,0,4,6,0,6,9000,7000,0,3,4,3],                                 // 3
@@ -334,6 +350,25 @@ Flynn.Font.Block.Points.ASCII = [
     Flynn.Font.Block.Points.UNIMPLEMENTED_CHAR,      // _
     Flynn.Font.Block.Points.UNIMPLEMENTED_CHAR,      // `
 ];
+
+
+Flynn.sounds = {
+    ui_move: new Howl({
+        src: ['sounds/UI_move.webm','sounds/UI_move.mp3'],
+        volume: 0.4 }),
+    ui_select: new Howl({
+        src: ['sounds/UI_select.webm','sounds/UI_select.mp3'],
+        volume: 0.4 }),
+    ui_cancel: new Howl({
+        src: ['sounds/UI_cancel.webm','sounds/UI_cancel.mp3'],
+        volume: 0.4 }),
+    ui_success: new Howl({
+        src: ['sounds/UI_success.webm','sounds/UI_success.mp3'],
+        volume: 0.4 }),
+    ui_error: new Howl({
+        src: ['sounds/UI_error.webm','sounds/UI_error.mp3'],
+        volume: 0.4 }),
+};
 
 Flynn.Rect= Class.extend({
     init: function(left, top, width, height){

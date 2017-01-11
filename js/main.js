@@ -2,7 +2,7 @@ var Game = Game || {}; // Create namespace
 
 (function () { "use strict";
 
-Game.VERSION = '0.2';
+Game.VERSION = '0.3';
 Game.CANVAS_HEIGHT = 768;
 Game.CANVAS_WIDTH = 1024;
 Game.SPEED_FACTOR = 1.0;
@@ -29,10 +29,16 @@ Game.Main = Class.extend({
             function(state){
                 switch(state){
                     case Game.States.MENU:
+                        Game.state_game = null;
                         return new Game.StateMenu();
                     case Game.States.GAME:
-                        return new Game.StateGame();
+                        if(!Game.state_game){
+                            // Start new game
+                            Game.state_game = new Game.StateGame();
+                        }
+                        return Game.state_game;
                     case Game.States.END:
+                        Game.state_game = null;
                         return new FlynnStateEnd(
                             Game.config.score,
                             Game.config.leaderboard,
@@ -47,7 +53,9 @@ Game.Main = Class.extend({
                             Flynn.Colors.LIGHTBLUE,
                             Flynn.Colors.GREEN,
                             Flynn.Colors.MAGENTA,
-                            Game.States.MENU
+                            Game.state_game ? Game.States.GAME : Game.States.MENU, // Parent state
+                            Game.States.MENU,         // Abort state
+                            Game.state_game !== null  // Abort enable
                             );
                 }
             }
@@ -163,7 +171,7 @@ Game.Main = Class.extend({
             var sound;
             var sound_enabled = Flynn.mcp.optionManager.getOption('soundEnabled');
             if (sound_enabled){
-                Game.sounds.insert_coin.play();
+                Flynn.sounds.ui_select.play();
             }
         };
 

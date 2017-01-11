@@ -32,6 +32,7 @@
         <script src="js/lib/flynn/flynnOptionManager.js"></script>
         <script src="js/lib/flynn/flynnMcp.js"></script>
         <script src="js/lib/flynn/flynnLeaderboard.js"></script>
+        <script src="js/lib/flynn/flynnVaLogo.js"></script>
 
     <!-- Before states -->
     <script src="js/points.js"></script>
@@ -51,13 +52,7 @@
     <script src="js/main.js"></script>
 </head>
 <body bgcolor="#080808">
-    <!-- <div id="gameContainer"> -->
-        <canvas class="canvas" id="gameCanvas"></canvas>
-    <!-- </div> -->
-
-    <input type="text" id="namefield">
-    <div style="background-color:#080808;position:absolute;top:0;width:200px;height:50px;"></div>
-    
+    <canvas class="canvas" id="gameCanvas"></canvas>
     <script>
         Game.main = new Game.Main();  // entry point in main.js
         Game.main.run();

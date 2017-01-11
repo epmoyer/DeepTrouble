@@ -19,6 +19,12 @@ Game.StateMenu = Flynn.State.extend({
             {x:10, y:240}, 
             2, //scale
             Flynn.Colors.GRAY);
+
+        this.va_logo = new Flynn.VALogo(
+            60,
+            Flynn.mcp.canvasHeight - 60,
+            1,
+            false);
     },
 
     handleInputs: function(input, paceFactor) {
@@ -70,6 +76,7 @@ Game.StateMenu = Flynn.State.extend({
             this.sonar_timer = Game.config.SONAR_PING_INTERVAL_SEC;
             Game.sounds.sonar_ping.play();
         }
+        this.va_logo.update(pace_factor);
     },
 
     render: function(ctx) {
@@ -121,13 +128,14 @@ Game.StateMenu = Flynn.State.extend({
         ctx.vectorText("A TWO-PLAYER TWO-BUTTON DEEP-SEA BATTLE", 1.8, null, 500, null, Flynn.Colors.DODGERBLUE);
         ctx.vectorText("DEAD MEN TELL NO TALES", 1.8, null, 520, null, Flynn.Colors.DODGERBLUE);
 
-        ctx.vectorText("WRITTEN BY ERIC MOYER (FIENDFODDER)", 1.5, null, 700, null, Flynn.Colors.DODGERBLUE);
+        ctx.vectorText("CREATED BY ERIC MOYER (FIENDFODDER)", 1.5, null, 700, null, Flynn.Colors.DODGERBLUE);
         ctx.vectorText('PRESS <ESCAPE> TO CONFIGURE CONTROLS', 1.5, null, 715, null, Flynn.Colors.DODGERBLUE);
         if(Flynn.mcp.backEnabled){
             ctx.vectorText('PRESS <TAB> TO EXIT GAME', 1.5, null, 730, null, Flynn.Colors.DODGERBLUE);
         }
 
         Flynn.mcp.renderLogo(ctx);
+        this.va_logo.render(ctx);
 
         this.controlsMenu.render(ctx);
     }

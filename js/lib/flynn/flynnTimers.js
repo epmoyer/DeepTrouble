@@ -1,3 +1,5 @@
+(function () { "use strict";
+    
 Flynn.Timer = Class.extend({
     init: function(timerName, initialTicks, callback){
         this.name = timerName;
@@ -69,7 +71,7 @@ Flynn.Timers = Class.extend({
             var timer = this.timers[timerName];
             if (timer.tickCounter > 0){
                 timer.tickCounter -= paceFactor;
-                if (timer.tickCounter < 0){
+                if (timer.tickCounter <= 0){
                     // Timer has expired
                     timer.tickCounter = 0;
                     timer.expired = true;
@@ -82,3 +84,5 @@ Flynn.Timers = Class.extend({
     },
 
 });
+
+}()); // "use strict" wrapper

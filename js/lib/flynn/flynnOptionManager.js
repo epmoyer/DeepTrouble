@@ -1,3 +1,5 @@
+(function () { "use strict"; 
+
 Flynn.OptionType = {
     BOOLEAN: 0,
     MULTI: 1,
@@ -52,6 +54,11 @@ Flynn.OptionManager = Class.extend({
         this.optionDescriptors[keyName] = descriptor;
     },
 
+    removeOption: function(keyName){
+        delete Flynn.mcp.options[keyName];
+        delete this.optionDescriptors[keyName];
+    },
+
     addOptionFromVirtualButton: function(virtualButtonName){
         var keyCode = Flynn.mcp.input.getVirtualButtonBoundKeyCode(virtualButtonName);
         var keyName = virtualButtonName;
@@ -71,7 +78,7 @@ Flynn.OptionManager = Class.extend({
             }
         }
         else{
-            console.print('DEV: Warnining: FlynnOptionManager.setOption() called for key "' +
+            console.print('DEV: Warning: FlynnOptionManager.setOption() called for key "' +
                 keyName + '", which does not match an existing option.  Doing nothing.');
         }
 
@@ -86,7 +93,7 @@ Flynn.OptionManager = Class.extend({
             return(this.optionDescriptors[keyName].currentValue);
         }
         else{
-            console.log('DEV: Warnining: FlynnOptionManager.getOption() called for key "' +
+            console.log('DEV: Warning: FlynnOptionManager.getOption() called for key "' +
                 keyName + '", which does not match an existing option.  Returning null.');
             return null;
         }
@@ -95,9 +102,20 @@ Flynn.OptionManager = Class.extend({
     revertToDefaults: function(){
         for (var keyName in this.optionDescriptors){
             var descriptor = this.optionDescriptors[keyName];
-            descriptor.currentValue = descriptor.defaultValue;
-            if(descriptor.type in this.SHADOWED_OPTION_TYPES){
-                Flynn.mcp.options[keyName] = descriptor.defaultValue;
+            if(descriptor.currentValue != descriptor.defaultValue){
+                // Change the option back to it's default
+                descriptor.currentValue = descriptor.defaultValue;
+                if(descriptor.type in this.SHADOWED_OPTION_TYPES){
+                    Flynn.mcp.options[keyName] = descriptor.defaultValue;
+                }
+                // Re-bind the associated key (for input options)
+                if(descriptor.type == Flynn.OptionType.INPUT_KEY){
+                    this.setOption(descriptor.keyName, descriptor.currentValue);
+                }
+                // Call the option's command handler (if one exists)
+                if(descriptor.commandHandler){
+                    descriptor.commandHandler();
+                }
             }
         }
     },
@@ -106,7 +124,7 @@ Flynn.OptionManager = Class.extend({
         // Revert to defaults
         this.revertToDefaults();
 
-        // Retreive all existant options from stored cookies.  (Any options not
+        // Retrieve all existent options from stored cookies.  (Any options not
         // retrievable from cookies will remain at their default settings.)
         var optionKeyNames = this.getOptionKeyNames();
         for(var i=0, len=optionKeyNames.length; i<len; i++){
@@ -136,7 +154,7 @@ Flynn.OptionManager = Class.extend({
     },
 
     saveAllToCookies: function(){
-        // Retreive all options to cookies.
+        // Retrieve all options to cookies.
         var optionKeyNames = this.getOptionKeyNames();
         for(var i=0, len=optionKeyNames.length; i<len; i++){
             var optionKey = optionKeyNames[i];
@@ -162,7 +180,7 @@ Flynn.OptionManager = Class.extend({
             this.optionDescriptors[keyName].commandHandler();
         }
         else{
-            console.print('DEV: Warnining: FlynnOptionManager.executeCommand() called for key "' +
+            console.print('DEV: Warning: FlynnOptionManager.executeCommand() called for key "' +
                 keyName + '", which does not exist or is not of type COMMAND.  Doing nothing.');
         }
     },
@@ -196,3 +214,5 @@ Flynn.OptionManager = Class.extend({
     },
 
 });
+
+}()); // "use strict" wrapper

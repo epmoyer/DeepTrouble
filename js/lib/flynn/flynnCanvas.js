@@ -1,4 +1,6 @@
 // Vector rendering emulation modes
+(function () { "use strict";
+
 Flynn.VectorMode = {
     PLAIN:     0,   // No Vector rendering emulation (plain lines)
     V_THIN:    1,   // Thin Vector rendering 
@@ -17,12 +19,23 @@ Flynn.Config.VECTOR_DIM_FACTOR_THICK = 0.75; // Brightness dimming for vector li
 Flynn.Config.VECTOR_DIM_FACTOR_THIN  = 0.65;
 Flynn.Config.VECTOR_OVERDRIVE_FACTOR = 0.2;  // White overdrive for vertex point artifacts
 
-
 Flynn.Canvas = Class.extend({
 
-    init: function(width, height) {
+    init: function(width, height, canvas, background_color) {
         this.showMetrics = false;
-        this.canvas = document.getElementById("gameCanvas");
+        if(typeof(canvas)==='undefined'){
+            this.canvas = document.getElementById("gameCanvas");
+        }
+        else{
+            this.canvas = canvas;
+        }
+        if(typeof(background_color)==='undefined'){
+            this.canvas.style.backgroundColor = '#000';
+        }
+        else{
+            this.canvas.style.backgroundColor = background_color;
+        }
+        
         this.canvas.width = width;
         this.canvas.height = height;
         this.previousTimestamp = 0;
@@ -52,44 +65,7 @@ Flynn.Canvas = Class.extend({
             
             ctx.drawPolygon = function(p, x, y) {
                 // .drawPolypon is deprecated. No world support.
-                throw "drawPolygon() is deprecated. Use polygon's .render() method.";
-                this.is_world = false;
-
-                var points = p.points;
-                var vector_color = p.color;
-                var current_polygon_x, current_polygon_y;
-
-                this.vectorStart(vector_color, false);
-                var pen_up = false;
-                for (var i=0, len=points.length; i<len; i+=2){
-                    if(points[i] == Flynn.PEN_COMMAND){
-                        if(points[i+1] == Flynn.PEN_UP){
-                            pen_up = true;
-                        }
-                        else{
-                            vector_color = Flynn.ColorsOrdered[points[i+1] - Flynn.PEN_COLOR0];
-                            this.vectorEnd();
-                            this.vectorStart(vector_color, false);
-                            if(i>0){
-                                this.vectorMoveTo(current_polygon_x+x, current_polygon_y+y);
-                            }
-                            //pen_up = true;
-                            //this.vectorMoveTo(current_polygon_x+x, current_polygon_y+y);
-                        }
-                    }
-                    else{
-                        current_polygon_x = points[i];
-                        current_polygon_y = points[i+1];
-                        if(i===0 || pen_up){
-                            this.vectorMoveTo(current_polygon_x+x, current_polygon_y+y);
-                            pen_up = false;
-                        }
-                        else {
-                            this.vectorLineTo(current_polygon_x+x, current_polygon_y+y);
-                        }
-                    }
-                }
-                this.vectorEnd();
+                throw "drawPolygon() is obsolete. Use polygon's .render() method.";
             };
 
             ctx.drawFpsGague = function(x, y, color, percentage){
@@ -253,7 +229,7 @@ Flynn.Canvas = Class.extend({
                 this.vectorEnd();
             };
 
-            ctx.vectorLine = function(x1, y1, x2, y2, color){
+            ctx.vectorLine = function(x1, y1, x2, y2, color, is_world){
                 if(typeof(is_world)==='undefined'){
                     is_world = false;
                 }
@@ -371,7 +347,7 @@ Flynn.Canvas = Class.extend({
                 this.DEBUGLOGGED = true;
             };
 
-            ctx.vectorTextArc = function(text, scale, center_x, center_y, angle, radius, color, is_centered, is_reversed, is_world, font){
+            ctx.vectorTextArc = function(text, scale, center_x, center_y, angle, radius, color, is_centered, is_reversed, is_world, font, stretch){
                 text = String(text);
 
                 if(typeof(color)==='undefined'){
@@ -389,11 +365,17 @@ Flynn.Canvas = Class.extend({
                 if(typeof(font)==='undefined'){
                     font = Flynn.Font.Normal;
                 }
+                if(typeof(stretch)==='undefined'){
+                    stretch = null;
+                }
 
                 var step = scale*font.CharacterSpacing;
 
                 var render_angle = angle;
                 var render_angle_step = Math.asin(font.CharacterSpacing*scale/radius);
+                if(stretch){
+                    render_angle_step *= 1.4;
+                }
                 var renderAngleOffset = 0;
                 if (is_centered){
                     renderAngleOffset = render_angle_step * (text.length / 2 - 0.5);
@@ -429,13 +411,38 @@ Flynn.Canvas = Class.extend({
                             pen_up = true;
                         }
                         else{
-                            var x = p[j] - font.CharacterWidth/2;
-                            var y = p[j+1] - font.CharacterHeight/2;
-                            var c = Math.cos(character_angle);
-                            var s = Math.sin(character_angle);
-                            var draw_x = (c*x - s*y) * scale + Math.cos(render_angle) * radius + center_x;
-                            var draw_y = (s*x + c*y) * scale + Math.sin(render_angle) * radius + center_y;
-
+                            if(stretch){
+                                var sign = 1;
+                                if (is_reversed){
+                                    sign = -sign;
+                                }
+                                
+                                // Remap x coordinate onto a logarithmic scale
+                                var character_x = p[j+1];
+                                if (!is_reversed){
+                                    character_x = font.CharacterHeight - character_x;
+                                }
+                                var x_log = Flynn.Util.logish(
+                                    character_x, 
+                                    0,                      // min
+                                    font.CharacterHeight,   // max
+                                    1.2                     // power
+                                    );
+                                
+                                var draw_radius = radius + (x_log - font.CharacterHeight/2) * scale * stretch;
+                                var draw_angle = render_angle +
+                                    sign * (p[j] - font.CharacterWidth/2) * font.CharacterSpacing * scale / (font.CharacterWidth * radius);
+                                var draw_x = Math.cos(draw_angle) * draw_radius + center_x;
+                                var draw_y = Math.sin(draw_angle) * draw_radius + center_y;
+                            }
+                            else{
+                                var x = p[j] - font.CharacterWidth/2;
+                                var y = p[j+1] - font.CharacterHeight/2;
+                                var c = Math.cos(character_angle);
+                                var s = Math.sin(character_angle);
+                                var draw_x = (c*x - s*y) * scale + Math.cos(render_angle) * radius + center_x;
+                                var draw_y = (s*x + c*y) * scale + Math.sin(render_angle) * radius + center_y;
+                            }
                             if(j===0 || pen_up){
                                 this.vectorMoveToUnconstrained(draw_x, draw_y);
                                 pen_up = false;
@@ -461,7 +468,7 @@ Flynn.Canvas = Class.extend({
 
         this.ctx.strokeStyle = Flynn.Colors.WHITE;
 
-        document.body.appendChild(this.canvas);
+        // document.body.appendChild(this.canvas);
     },
 
     animate: function(animation_callback_f) {
@@ -514,8 +521,8 @@ Flynn.Canvas = Class.extend({
             //---------------------------
             // Do animation
             //---------------------------
-            var start;
-            var end;
+            var start=0;
+            var end=0;
             if(Flynn.mcp.browserSupportsPerformance){
                 start = performance.now();
             }
@@ -526,11 +533,34 @@ Flynn.Canvas = Class.extend({
                 end = performance.now();
             }
 
+            var color, percentage;
             if (self.showMetrics){
-                self.ctx.drawFpsGague(self.canvas.width-70, self.canvas.height-15, Flynn.Colors.GREEN, self.ctx.fps/120);
                 if(Flynn.mcp.browserSupportsPerformance){
-                    self.ctx.drawFpsGague(self.canvas.width-70, self.canvas.height-21, Flynn.Colors.YELLOW, (end-start)/(1000/120));
+                    // Render Time 
+                    //   Green: Good
+                    //   Red:   Too long
+                    percentage = (end-start)/(1000/30); // 100% of bar is the 30fps render time (50% is 60fps)
+                    self.ctx.drawFpsGague(
+                        self.canvas.width-70,
+                        self.canvas.height-21,
+                        percentage<=50 ? Flynn.Colors.GREEN: Flynn.Colors.RED,
+                        percentage);
                 }
+                // FPS:
+                //   Green:  Good
+                //   Orange: < 59 fps
+                //   Red:    < 30 fps
+                percentage = self.ctx.fps/60; // 100% of bar is 60fps
+                if(self.ctx.fps<59){
+                    color = Flynn.Colors.ORANGE;
+                }
+                else if (self.ctx.fps<30){
+                    color = Flynn.Colors.RED;
+                }
+                else{
+                    color = Flynn.Colors.GREEN;
+                }
+                self.ctx.drawFpsGague(self.canvas.width-70, self.canvas.height-15, color, percentage);
             }
             
             // Update screen and request callback
@@ -542,3 +572,5 @@ Flynn.Canvas = Class.extend({
         refresh_f(callback_f, this.canvas );
     }
 });
+
+}()); // "use strict" wrapper
