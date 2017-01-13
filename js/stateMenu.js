@@ -125,8 +125,14 @@ Game.StateMenu = Flynn.State.extend({
             }
         }
 
+        if (Math.floor(Flynn.mcp.clock / 40) % 2 == 1) {
+            ctx.vectorText("PRESS <ENTER> TO START", 1.8, null, 400, null, Flynn.Colors.GREEN);
+        }
         ctx.vectorText("A TWO-PLAYER TWO-BUTTON DEEP-SEA BATTLE", 1.8, null, 500, null, Flynn.Colors.DODGERBLUE);
         ctx.vectorText("DEAD MEN TELL NO TALES", 1.8, null, 520, null, Flynn.Colors.DODGERBLUE);
+
+        ctx.vectorText("PROOF OF CONCEPT", 1.8, 900, 150, 'center', Flynn.Colors.RED);
+        ctx.vectorText("ALPHA", 3, 900, 170, 'center', Flynn.Colors.RED);
 
         ctx.vectorText("CREATED BY ERIC MOYER (FIENDFODDER)", 1.5, null, 700, null, Flynn.Colors.DODGERBLUE);
         ctx.vectorText('PRESS <ESCAPE> TO CONFIGURE CONTROLS', 1.5, null, 715, null, Flynn.Colors.DODGERBLUE);
