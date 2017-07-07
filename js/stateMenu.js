@@ -21,8 +21,7 @@ Game.StateMenu = Flynn.State.extend({
             Flynn.Colors.GRAY);
 
         this.va_logo = new Flynn.VALogo(
-            60,
-            Flynn.mcp.canvasHeight - 60,
+            new Victor(60, Flynn.mcp.canvasHeight - 60),
             1,
             false);
     },

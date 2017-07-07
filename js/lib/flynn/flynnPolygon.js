@@ -2,20 +2,22 @@
     
 Flynn.Polygon = Class.extend({
 
-    init: function(p, color, scale, position){
-        if(typeof(position)==='undefined'){
-            position={x:100, y:100, is_world:false};
+    init: function(points, color, scale, position, constrained, is_world){
+        if(arguments.length != 6){
+            throw "Polygon(): init API has changed.";
         }
-        if(typeof(scale)==='undefined'){
-            scale=3;
+        if(!(position instanceof Victor)){
+            throw "Polygon(): init API has changed. position must be a Victor object";
         }
-        this.color = color || Flynn.Colors.WHITE;
-        this.position = position;
 
-        this.points = p.slice(0);
-        this.pointsMaster = p.slice(0);
+        this.color = color || Flynn.Colors.WHITE;
+        this.position = position.clone();
+        this.is_world = is_world;
+
+        this.points = points.slice(0);
+        this.pointsMaster = points.slice(0);
         
-        // Allow a boudary region polygon to be substituted for collision detection.
+        // Allow a boundary region polygon to be substituted for collision detection.
         this.bounding_enabled = false;
         this.bounding_visible = false;
         this.points_bounding = null;
@@ -26,6 +28,8 @@ Flynn.Polygon = Class.extend({
         this.scale = scale;
         this.visible = true;
         this.setAngle(this.angle);
+
+        this.constrained = constrained;
     },
 
     setBoundingPoly: function(points){
@@ -88,16 +92,19 @@ Flynn.Polygon = Class.extend({
         }
     },
 
-
-    /**
-     * Useful point in polygon check, taken from:
-     * http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-     *
-     * @param  {number}  x test x coordinate
-     * @param  {number}  y test y coordinate
-     * @return {Boolean}   result from check
-     */
     hasPoint: function(x, y) {
+        // Test if point is within polygon
+        // Adapted from: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+        //
+        // Args:
+        //    x: x coordinate of test point
+        //    y: y coordinate of test point
+        // Returns:
+        //    true if test point within polygon
+        if(arguments.length != 2){
+            throw "hasPoint(): Temp fix back.";
+        }
+
         var c = false;
         var p;
         var pos_x, pos_y;
@@ -137,10 +144,10 @@ Flynn.Polygon = Class.extend({
     is_colliding: function(target_poly){
         // Test for collision with another polygon.
         // This is a lossy check.  It checks only whether the vertices of the 
-        // poygon appear within this polygon, which is sufficient for game collision detection
-        // between similar sized polygons.  It is possible to consruct polygons with long
-        // appendages which can overlap withoug triggering collisioin detection.  Exhaustive 
-        // general-case detection of edge intesection is not worth the performance hit.
+        // polygon appear within this polygon, which is sufficient for game collision detection
+        // between similar sized polygons.  It is possible to construct polygons with long
+        // appendages which can overlap without triggering collision detection.  Exhaustive 
+        // general-case detection of edge intersection is not worth the performance hit.
         var i, len, pos_x, pos_y;
 
         if (!this.visible){
@@ -169,18 +176,10 @@ Flynn.Polygon = Class.extend({
         var points_x, points_y;
         var draw_x, draw_y;
 
-        if(this.position.is_world){
-            // Position is in world coordinates
-            draw_x = this.position.x-Flynn.mcp.viewport.x;
-            draw_y = this.position.y-Flynn.mcp.viewport.y;
-        }
-        else{
-            // Position is in screen coordinates
-            draw_x = this.position.x;
-            draw_y = this.position.y;
-        }
+        draw_x = this.position.x;
+        draw_y = this.position.y;
 
-        ctx.vectorStart(vector_color);
+        ctx.vectorStart(vector_color, this.is_world, this.constrained);
         var pen_up = false;
         for (var i=0, len=this.points.length; i<len; i+=2){
             if(this.points[i] == Flynn.PEN_COMMAND){
@@ -190,8 +189,8 @@ Flynn.Polygon = Class.extend({
                 else{
                     vector_color = Flynn.ColorsOrdered[this.points[i+1] - Flynn.PEN_COLOR0];
                     ctx.vectorEnd();
-                    ctx.vectorStart(vector_color);
-                    if(i>0){
+                    ctx.vectorStart(vector_color, this.is_world, this.constrained);
+                    if(i > 0){
                         ctx.vectorMoveTo(points_x+draw_x, points_y+draw_y);
                     }
                 }
@@ -210,12 +209,12 @@ Flynn.Polygon = Class.extend({
         }
         ctx.vectorEnd();
 
-        // Draw bounding polygon (if enabled for devlopment debug)
+        // Draw bounding polygon (if enabled for development debug)
         if(this.bounding_visible){
             this.updateBoundingPoly();
             vector_color=(Flynn.Colors.GRAY);
             pen_up = true;
-            ctx.vectorStart(vector_color);
+            ctx.vectorStart(vector_color, this.is_world, this.constrained);
             for (i=0, len=this.points_bounding.length; i<len; i+=2){
                 points_x = this.points_bounding[i];
                 points_y = this.points_bounding[i+1];

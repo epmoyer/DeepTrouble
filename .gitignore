@@ -4,5 +4,8 @@ js/_trash
 js/lib/flynn/diff.sh
 js/lib/flynn/pull.sh
 js/lib/flynn/push.sh
+js/lib/flynn/flynn*.js
+js/lib/flynn/flynn.min.js.source-map
 scrapbook
 deploy.sh
+deploy-exclude.txt

@@ -44,8 +44,7 @@ Game.StateGame = Flynn.State.extend({
 
     init: function() {
         
-        this.center_x = Game.CANVAS_WIDTH/2;
-        this.center_y = Game.CANVAS_HEIGHT/2;
+        this.center = new Victor(Game.CANVAS_WIDTH/2, Game.CANVAS_HEIGHT/2);
 
         this.ships = [];
         for(var i =0; i<this.NUM_PLAYERS; i++){
@@ -53,16 +52,23 @@ Game.StateGame = Flynn.State.extend({
                 Game.Points.SUB,
                 i === 0 ? Flynn.Colors.DODGERBLUE : '#a00000',
                 2.5, // scale
-                {  x: this.center_x + (i===0 ? -200 : 200),
-                   y: this.center_y}
+                new Victor(
+                    this.center.x + (i===0 ? -200 : 200),
+                    this.center.y)
                 );
             this.ships[i].setAngle(this.SHIP_START_ANGLE);
         }
 
         this.gameOver = false;
         this.lives = 3;
-        this.lifepolygon = new Flynn.Polygon(Game.Points.SUB, Flynn.Colors.DODGERBLUE);
-        this.lifepolygon.setScale(1.2);
+        this.lifepolygon = new Flynn.Polygon(
+            Game.Points.SUB,
+            Flynn.Colors.DODGERBLUE,
+            1.2, // scale
+            new Victor(0,0),
+            false, // constrained
+            true   // is_world
+            );
         this.lifepolygon.setAngle(0);
 
         Game.config.score = [0, 0];
@@ -245,10 +251,10 @@ Game.StateGame = Flynn.State.extend({
                 case Game.ButtonEvent.HoldTapLeft:
                     Game.sounds.torpedo.play();
                     this.projectiles.add(
-                        {  x: this.ships[player_index].position.x - this.SHIP_WIDTH/2,
-                           y: this.ships[player_index].position.y
-                        },
-                        {x: -this.SHIP_SHOT_VELOCITY, y: 0},
+                        new Victor(
+                            this.ships[player_index].position.x - this.SHIP_WIDTH/2,
+                            this.ships[player_index].position.y),
+                        new Victor(-this.SHIP_SHOT_VELOCITY, 0),
                         this.SHIP_SHOT_LIFE,
                         this.SHIP_SHOT_SIZE,
                         Flynn.Colors.LIGHTSKYBLUE
@@ -257,10 +263,10 @@ Game.StateGame = Flynn.State.extend({
                 case Game.ButtonEvent.HoldTapRight:
                     Game.sounds.torpedo.play();
                     this.projectiles.add(
-                        {  x: this.ships[player_index].position.x + this.SHIP_WIDTH/2,
-                           y: this.ships[player_index].position.y
-                        },
-                        {x: this.SHIP_SHOT_VELOCITY, y: 0},
+                        new Victor(
+                            this.ships[player_index].position.x + this.SHIP_WIDTH/2,
+                            this.ships[player_index].position.y),
+                        new Victor(this.SHIP_SHOT_VELOCITY, 0),
                         this.SHIP_SHOT_LIFE,
                         this.SHIP_SHOT_SIZE,
                         Flynn.Colors.LIGHTSKYBLUE

@@ -28,6 +28,7 @@ Flynn.Mcp = Class.extend({
         this.iCadeModeEnabled = Flynn.Util.getUrlFlag("icade");
         this.backEnabled = Flynn.Util.getUrlFlag("back");
         this.mousetouchEnabled = Flynn.Util.getUrlFlag("mousetouch");
+        this.optionNoscale = Flynn.Util.getUrlFlag("noscale");
         
         this.halted = false;
         this.audio_mute_enabled = false;
@@ -68,9 +69,11 @@ Flynn.Mcp = Class.extend({
             Flynn.Points.FLYNN_LOGO,
             Flynn.Colors.DODGERBLUE,
             2, // scale
-            {   x:Flynn.mcp.canvasWidth-55, 
-                y:Flynn.mcp.canvasHeight-41, 
-                is_world:false}
+            new Victor(
+                Flynn.mcp.canvasWidth-55, 
+                Flynn.mcp.canvasHeight-41),
+            false, // constrained
+            false  // is_world
             );
 
         //--------------------------
@@ -80,7 +83,8 @@ Flynn.Mcp = Class.extend({
         // SUPPORT: performance.now()
         this.browserSupportsPerformance = true;
         try{
-            var time = performance.now();
+            // Call to test whether an exception is thrown (return value ignored).
+            performance.now(); 
         }
         catch(err){
             this.browserSupportsPerformance = false;
@@ -91,7 +95,7 @@ Flynn.Mcp = Class.extend({
 
         // SUPPORT: Touch
         this.browserSupportsTouch = (
-            (Flynn.Util.is_mobile_browser() && ('ontouchstart' in document.documentElement)) ||
+            (Flynn.Util.is_mobile_or_tablet_browser() && ('ontouchstart' in document.documentElement)) ||
             this.mousetouchEnabled );
 
         if (this.developerModeEnabled){
@@ -103,6 +107,7 @@ Flynn.Mcp = Class.extend({
             console.log('DEV: arcadeModeEnabled=' + this.arcadeModeEnabled);
             console.log('DEV: iCadeModeEnabled=' + this.iCadeModeEnabled);
             console.log('DEV: backEnabled=' + this.backEnabled);
+            console.log('DEV: optionNoscale=' + this.optionNoscale);
         }
 
         // Set Vector mode
@@ -148,8 +153,16 @@ Flynn.Mcp = Class.extend({
             var targetWidth = 1024;
             var targetHeight = 768;
             var multiplier = Math.min((viewport.height / targetHeight), (viewport.width / targetWidth));
-            var actualCanvasWidth = Math.floor(targetWidth * multiplier);
-            var actualCanvasHeight = Math.floor(targetHeight * multiplier);
+            var actualCanvasWidth;
+            var actualCanvasHeight;
+            if(self.optionNoscale){
+                actualCanvasWidth = targetWidth;
+                actualCanvasHeight = targetHeight;
+            }
+            else{
+                actualCanvasWidth = Math.floor(targetWidth * multiplier);
+                actualCanvasHeight = Math.floor(targetHeight * multiplier);
+            }
             var top = Math.floor(viewport.height/2 - actualCanvasHeight/2);
             var left = Math.floor(viewport.width/2 - actualCanvasWidth/2);
 
@@ -184,11 +197,11 @@ Flynn.Mcp = Class.extend({
         this.resizeFunc = resizeFunc;
     },
 
-    changeState(next_state_id){
+    changeState: function(next_state_id){
         this.next_state_id = next_state_id;
     },
 
-    muteAudio(mute_enable){
+    muteAudio: function(mute_enable){
         this.audio_mute_enabled = mute_enable;
         Howler.mute(mute_enable);
     },
@@ -251,7 +264,7 @@ Flynn.Mcp = Class.extend({
         }
     },
 
-    renderLogo(ctx, position){
+    renderLogo: function(ctx, position){
         if(typeof position !== 'undefined'){
             this.flynn_logo.position = position;
         }

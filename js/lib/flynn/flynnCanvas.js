@@ -39,6 +39,7 @@ Flynn.Canvas = Class.extend({
         this.canvas.width = width;
         this.canvas.height = height;
         this.previousTimestamp = 0;
+        this.constrained = false;
 
         this.DEBUGLOGGED = false;
 
@@ -68,9 +69,11 @@ Flynn.Canvas = Class.extend({
                 throw "drawPolygon() is obsolete. Use polygon's .render() method.";
             };
 
-            ctx.drawFpsGague = function(x, y, color, percentage){
-                x += 0.5;
-                y += 0.5;
+            ctx.drawFpsGague = function(position, color, percentage){
+                if(arguments.length == 4){
+                    throw "drawFpsGague(): API has changed.";
+                }
+                var draw_pos = position.clone().addScalar(0.5);
                 this.beginPath();
                 var length = 60;
                 var height = 6;
@@ -78,9 +81,9 @@ Flynn.Canvas = Class.extend({
 
                 this.strokeStyle = Flynn.Colors.GRAY;
                 ctx.fillStyle="#FFFFFF";
-                ctx.rect(x,y,length,height);
+                ctx.rect(draw_pos.x, draw_pos.y,length,height);
                 ctx.fillStyle=color;
-                ctx.fillRect(x, y, x_needle, height);
+                ctx.fillRect(draw_pos.x, draw_pos.y, x_needle, height);
 
                 this.stroke();
             };
@@ -88,12 +91,18 @@ Flynn.Canvas = Class.extend({
             //-----------------------------
             // Vector graphic simulation
             //-----------------------------
-            ctx.vectorStart = function(color, is_world){
+            ctx.vectorStart = function(color, is_world, constrained){
                 if(typeof(is_world)==='undefined'){
                     this.is_world = false;
                 }
                 else{
                     this.is_world = is_world;
+                }
+                if(typeof(constrained)==='undefined'){
+                    this.constrained = false;
+                }
+                else{
+                    this.constrained = constrained;
                 }
 
                 // Determine vector line color
@@ -147,15 +156,19 @@ Flynn.Canvas = Class.extend({
                 //this.lineWidth = "6"; // Fat lines for screenshot thumbnail generation
             };
 
-            ctx.vectorLineTo = function(x, y){
-                this.vectorLineToUnconstrained(Math.floor(x), Math.floor(y));
-            };
-
-            ctx.vectorMoveTo = function(x, y){
-                this.vectorMoveToUnconstrained(Math.floor(x), Math.floor(y));
-            };
-
             ctx.vectorLineToUnconstrained = function(x, y){
+                throw "vectorLineToUnconstrained() deprecated.  Pass constrained to vectorStart().";
+            };
+
+            ctx.vectorMoveToUnconstrained = function(x, y){
+                throw "vectorMoveToUnconstrained() deprecated.  Pass constrained to vectorStart().";
+            };
+
+            ctx.vectorLineTo = function(x, y){
+                if(this.constrained){
+                    x = Math.floor(x);
+                    y = Math.floor(y);
+                }
                 if(this.is_world){
                     // World coordinates
                     x -= Math.floor(Flynn.mcp.viewport.x);
@@ -170,7 +183,11 @@ Flynn.Canvas = Class.extend({
                 }
             };
 
-            ctx.vectorMoveToUnconstrained = function(x, y){
+            ctx.vectorMoveTo = function(x, y){
+                if(this.constrained){
+                    x = Math.floor(x);
+                    y = Math.floor(y);
+                }
                 if(this.is_world){
                     // World coordinates
                     x -= Math.floor(Flynn.mcp.viewport.x);
@@ -206,6 +223,12 @@ Flynn.Canvas = Class.extend({
                         ctx.fillRect(this.vectorVericies[i]-offset, this.vectorVericies[i+1]-offset, size, size);
                     }
                 }
+            };
+
+            ctx.vectorRectR = function(rect, color, fill_color, is_world){
+                this.vectorRect(
+                    rect.left, rect.top, rect.width, rect.height, 
+                    color, fill_color, is_world);
             };
 
             ctx.vectorRect = function(x, y, width, height, color, fill_color, is_world){
@@ -255,6 +278,22 @@ Flynn.Canvas = Class.extend({
                 return p;
             };
 
+            ctx.vectorCircle = function(x, y, radius, num_sides, color, is_world){
+                // Draw a circle using vectors
+
+                var angle;
+                this.vectorStart(color, is_world);
+                for(angle = 0; angle <= Math.PI * 2; angle += Math.PI*2/num_sides){
+                    if(angle === 0){
+                        this.vectorMoveTo(x + radius, y);
+                    }
+                    else{
+                        this.vectorLineTo(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius);
+                    }
+                }
+                this.vectorEnd();
+            },
+
             ctx.vectorText = function(text, scale, x, y, justify, color, is_world, font){
                 // text: String (the text to display)
                 // x: number or null
@@ -264,7 +303,7 @@ Flynn.Canvas = Class.extend({
                 //    number: The y location to display the text
                 //    null: Center text vertically on screen
                 // justify: String.  'left', 'right', or 'center'
-                //    If x is null, then lustify can be null (it is ignored)
+                //    If x is null, then justify can be null (it is ignored)
                 // color: String.  Text color.
                 // is_world: Boolean
                 //    true: Use world coordinates
@@ -326,7 +365,7 @@ Flynn.Canvas = Class.extend({
                     var p = this.charToPolygon(ch, font);
 
                     var pen_up = false;
-                    this.vectorStart(color, is_world);
+                    this.vectorStart(color, is_world, true);
                     for (var j=0, len2=p.length; j<len2; j+=2){
                         if(p[j]==Flynn.PEN_COMMAND){
                             pen_up = true;
@@ -348,6 +387,8 @@ Flynn.Canvas = Class.extend({
             };
 
             ctx.vectorTextArc = function(text, scale, center_x, center_y, angle, radius, color, is_centered, is_reversed, is_world, font, stretch){
+                var draw_x, draw_y;
+
                 text = String(text);
 
                 if(typeof(color)==='undefined'){
@@ -369,8 +410,6 @@ Flynn.Canvas = Class.extend({
                     stretch = null;
                 }
 
-                var step = scale*font.CharacterSpacing;
-
                 var render_angle = angle;
                 var render_angle_step = Math.asin(font.CharacterSpacing*scale/radius);
                 if(stretch){
@@ -391,7 +430,7 @@ Flynn.Canvas = Class.extend({
                 }
 
                 for(var i = 0, len = text.length; i<len; i++){
-                    this.vectorStart(color, is_world);
+                    this.vectorStart(color, is_world, false);
                     var ch = text.charCodeAt(i);
 
                     if (ch === this.SPACECODE){
@@ -432,23 +471,23 @@ Flynn.Canvas = Class.extend({
                                 var draw_radius = radius + (x_log - font.CharacterHeight/2) * scale * stretch;
                                 var draw_angle = render_angle +
                                     sign * (p[j] - font.CharacterWidth/2) * font.CharacterSpacing * scale / (font.CharacterWidth * radius);
-                                var draw_x = Math.cos(draw_angle) * draw_radius + center_x;
-                                var draw_y = Math.sin(draw_angle) * draw_radius + center_y;
+                                draw_x = Math.cos(draw_angle) * draw_radius + center_x;
+                                draw_y = Math.sin(draw_angle) * draw_radius + center_y;
                             }
                             else{
                                 var x = p[j] - font.CharacterWidth/2;
                                 var y = p[j+1] - font.CharacterHeight/2;
                                 var c = Math.cos(character_angle);
                                 var s = Math.sin(character_angle);
-                                var draw_x = (c*x - s*y) * scale + Math.cos(render_angle) * radius + center_x;
-                                var draw_y = (s*x + c*y) * scale + Math.sin(render_angle) * radius + center_y;
+                                draw_x = (c*x - s*y) * scale + Math.cos(render_angle) * radius + center_x;
+                                draw_y = (s*x + c*y) * scale + Math.sin(render_angle) * radius + center_y;
                             }
                             if(j===0 || pen_up){
-                                this.vectorMoveToUnconstrained(draw_x, draw_y);
+                                this.vectorMoveTo(draw_x, draw_y);
                                 pen_up = false;
                             }
                             else{
-                                this.vectorLineToUnconstrained(draw_x, draw_y);
+                                this.vectorLineTo(draw_x, draw_y);
                             }
                         }
                     }
@@ -541,8 +580,10 @@ Flynn.Canvas = Class.extend({
                     //   Red:   Too long
                     percentage = (end-start)/(1000/30); // 100% of bar is the 30fps render time (50% is 60fps)
                     self.ctx.drawFpsGague(
-                        self.canvas.width-70,
-                        self.canvas.height-21,
+                        new Victor(
+                            self.canvas.width-70,
+                            self.canvas.height-21
+                            ),
                         percentage<=50 ? Flynn.Colors.GREEN: Flynn.Colors.RED,
                         percentage);
                 }
@@ -560,7 +601,9 @@ Flynn.Canvas = Class.extend({
                 else{
                     color = Flynn.Colors.GREEN;
                 }
-                self.ctx.drawFpsGague(self.canvas.width-70, self.canvas.height-15, color, percentage);
+                self.ctx.drawFpsGague(
+                    new Victor(self.canvas.width-70, self.canvas.height-15), 
+                    color, percentage);
             }
             
             // Update screen and request callback

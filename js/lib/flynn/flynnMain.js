@@ -6,7 +6,7 @@ var Flynn = Flynn || {}; // Create namespace
 
 (function () { "use strict"; 
 
-Flynn.VERSION = "2.5.1";
+Flynn.VERSION = "3.0.1";
  
 Flynn.init = function(
     canvasWidth,
@@ -23,6 +23,9 @@ Flynn.init = function(
     if(typeof(hideVectorModeOption)==='undefined'){
         hideVectorModeOption= false;
     }
+
+    // Extend victor.js functionality
+    Flynn.monkeyPatchVictor();
     
     // The mcp will register itself as Flynn.mcp when created
     new Flynn.Mcp(
@@ -223,7 +226,7 @@ Flynn.Font.Normal = {
             [1,3,3,3],                                                           // -  
             [1.5,6,1.5,5,2.5,5,2.5,6,1.5,6],                                     // .  
             [1,6,3,0,1,6],                                                       // /  
-            [4,0,0,0,0,6,4,6,4,0,0,6],                                           // 0
+            [0,0,4,0,4,6,0,6,0,0],                                               // 0
             [2,0,2,6],                                                           // 1
             [0,0,4,0,4,3,0,3,0,6,4,6],                                           // 2
             [0,0,4,0,4,6,0,6,9000,7000,0,3,4,3],                                 // 3
@@ -380,6 +383,7 @@ Flynn.Rect= Class.extend({
         this.height = height;
         this.center_x = this.left + this.width/2;
         this.center_y = this.top + this.height/2;
+        this.center_position = new Victor(this.center_x, this.center_y);
         this.right = this.left + this.width;
         this.bottom = this.top + this.height;
     },
@@ -391,6 +395,14 @@ Flynn.Rect= Class.extend({
             this.width,
             this.height
             );
+    },
+
+    hasPoint: function(x, y){
+        return (
+            (x > this.left) &&
+            (y > this.top) &&
+            (x < this.right) &&
+            (y < this.bottom));
     }
 });
 

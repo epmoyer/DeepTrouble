@@ -9,7 +9,10 @@ Game.Ship = Flynn.Polygon.extend({
             points,
             color,
             scale,
-            position);
+            position,
+            false, // constrained
+            true //is_world
+            );
 
         this.dead = false;
 
