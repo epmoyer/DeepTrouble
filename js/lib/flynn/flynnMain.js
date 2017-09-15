@@ -6,7 +6,7 @@ var Flynn = Flynn || {}; // Create namespace
 
 (function () { "use strict"; 
 
-Flynn.VERSION = "3.0.1";
+Flynn.VERSION = "3.2.2";
  
 Flynn.init = function(
     canvasWidth,
@@ -376,7 +376,10 @@ Flynn.sounds = {
 Flynn.Rect= Class.extend({
     init: function(left, top, width, height){
         this.object_id = 'Flynn.Rect';
+        this._setAttributes(left, top, width, height);
+    },
 
+    _setAttributes: function(left, top, width, height){
         this.left = left;
         this.top = top;
         this.width = width;
@@ -403,6 +406,10 @@ Flynn.Rect= Class.extend({
             (y > this.top) &&
             (x < this.right) &&
             (y < this.bottom));
+    },
+
+    moveTo: function(position){
+        this._setAttributes(position.x, position.y, this.width, this.height);
     }
 });
 

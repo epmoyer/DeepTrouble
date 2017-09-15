@@ -79,8 +79,6 @@ Game.StateMenu = Flynn.State.extend({
     },
 
     render: function(ctx) {
-        ctx.clearAll();
-
         var title = 'DEEP TROUBLE';
         var x_pos = Game.CANVAS_WIDTH /2;
         var y_pos = 14;

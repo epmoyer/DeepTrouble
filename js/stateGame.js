@@ -460,8 +460,6 @@ Game.StateGame = Flynn.State.extend({
     },
 
     render: function(ctx){
-        ctx.clearAll();
-
         this.controlsMenu.render(ctx);
 
         // PopUp Text

@@ -10,3 +10,4 @@ js/lib/flynn/flynn.min.js.source-map
 scrapbook
 deploy.sh
 deploy-exclude.txt
+update_flynn.py

@@ -39,8 +39,6 @@ Flynn.Mcp = Class.extend({
         this.current_state = null;
 
         this.devPacingMode = Flynn.DevPacingMode.NORMAL;
-        this.devLowFpsPaceFactor = 0;
-        this.devLowFpsFrameCount = 0;
 
         this.viewport = {x:0, y:0};
 
@@ -282,79 +280,38 @@ Flynn.Mcp = Class.extend({
     run: function(){
         var self = this;
 
-        this.canvas.animate( function(paceFactor) {
+        this.canvas.animate( function(paceFactor) {  
+            // Change state (if pending)
+            if (self.next_state_id !== self.noChangeState) {
+                if(self.current_state && self.current_state.destructor){
+                    self.current_state.destructor();
+                }
+                self.current_state = self.stateBuilderFunc(self.next_state_id);
+                self.current_state_id = self.next_state_id;
+                self.next_state_id = self.noChangeState;
 
-            var skipThisFrame = false;
-            var label = null;
-
-            switch(self.devPacingMode){
-                case Flynn.DevPacingMode.NORMAL:
-                    paceFactor *= self.gameSpeedFactor;
-                    break;
-                case Flynn.DevPacingMode.SLOW_MO:
-                    paceFactor *= self.gameSpeedFactor * 0.2;
-                    label = "SLOW_MO";
-                    break;
-                case Flynn.DevPacingMode.FPS_20:
-                    paceFactor *= self.gameSpeedFactor;
-                    ++self.devLowFpsFrameCount;
-                    self.devLowFpsPaceFactor += paceFactor;
-                    if(self.devLowFpsFrameCount === 5){
-                        self.devLowFpsFrameCount = 0;
-                        paceFactor = self.devLowFpsPaceFactor;
-                        self.devLowFpsPaceFactor = 0;
-                    }
-                    else{
-                        // Skip this frame (to simulate low frame rate)
-                        skipThisFrame = true;
-                    }
-                    label = "FPS_20";
-                    break;
+                // Update controls visibility to reflect new state
+                self.input.updateVisibilityAllControls();
             }
 
-            if(!skipThisFrame){
-                // Change state (if pending)
-                if (self.next_state_id !== self.noChangeState) {
+            // Update clock and timers
+            self.clock += paceFactor;
+            self.timers.update(paceFactor);
 
-                    // Hide all touch controls on a state change
-                    //self.input.hideTouchRegionAll();
-                    //self.input.hideVirtualJoystickAll();
+            // Process state (if set)
+            if(self.current_state){
+                self.current_state.handleInputs(self.input, paceFactor);
+                self.current_state.update(paceFactor);
+                self.current_state.render(self.canvas.ctx);
 
-                    if(self.current_state && self.current_state.destructor){
-                        self.current_state.destructor();
-                    }
-                    self.current_state = self.stateBuilderFunc(self.next_state_id);
-                    self.current_state_id = self.next_state_id;
-                    self.next_state_id = self.noChangeState;
+                // Render any visible virtual controls
+                self.input.renderTouchRegions(self.touch_control_canvas.ctx);
+                self.input.renderVirtualJoysticks(self.touch_control_canvas.ctx);
 
-                    // Update controls visibility to reflect new state
-                    self.input.updateVisibilityAllControls();
-
-                }
-
-                // Update clock and timers
-                self.clock += paceFactor;
-                self.timers.update(paceFactor);
-
-                // Process state (if set)
-                if(self.current_state){
-                    self.current_state.handleInputs(self.input, paceFactor);
-                    self.current_state.update(paceFactor);
-                    self.current_state.render(self.canvas.ctx);
-
-                    if(label){
-                        self.canvas.ctx.vectorText(label, 1.5, 10, self.canvasHeight-20, 'left', Flynn.Colors.GRAY);
-                    }
-
-                    // Render any visible virtual controls
-                    self.input.renderTouchRegions(self.touch_control_canvas.ctx);
-                    self.input.renderVirtualJoysticks(self.touch_control_canvas.ctx);
-
-                    // Process halt
-                    if(   self.developerModeEnabled 
-                       && self.input.virtualButtonWasPressed("UI_halt")){
-                        self.devHalt();
-                    }
+                // Process halt
+                if(   self.developerModeEnabled 
+                   && self.input.virtualButtonWasPressed("UI_halt")){
+                    self.devHalt();
                 }
             }
         });
